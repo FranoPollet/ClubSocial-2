@@ -28,6 +28,7 @@
 		     Incluimos directamente los archivos que vamos a probar. -->
 		<Compile Include="..\ClubSocial\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
 		<Compile Include="..\ClubSocial\Services\*.cs" Link="Services\%(Filename)%(Extension)" />
+		<Compile Include="..\ClubSocial\Repositories\*.cs" Link="Repositories\%(Filename)%(Extension)" />
 	</ItemGroup>
 
 </Project>
