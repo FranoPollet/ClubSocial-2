@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Framework de testing -->
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.2" />
+		<PackageReference Include="xunit" Version="2.6.6" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- Moq para los mocks (lo vamos a usar en las próximas fases) -->
+		<PackageReference Include="Moq" Version="4.20.70" />
+
+		<!-- El modelo Socio usa atributos de SQLite -->
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- No referenciamos el proyecto MAUI porque tiene otros TargetFramework.
+		     Incluimos directamente los archivos que vamos a probar. -->
+		<Compile Include="..\ClubSocial\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
+		<Compile Include="..\ClubSocial\Services\*.cs" Link="Services\%(Filename)%(Extension)" />
+	</ItemGroup>
+
+</Project>
