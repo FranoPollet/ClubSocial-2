@@ -4,13 +4,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using ClubSocial.Models;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Networking;
-using System.Net.Http;
-using System.Net;
 
 namespace ClubSocial.ViewModels
 {
@@ -82,6 +79,41 @@ namespace ClubSocial.ViewModels
                 "Aceptar");
         }
 
+        // El servicio ya clasificó el error.
+        // Acá solo elegimos el texto que ve el usuario.
+        private static string ObtenerMensaje(ClimaException ex)
+        {
+            switch (ex.Tipo)
+            {
+                case TipoErrorClima.SolicitudInvalida:
+                    return "Error HTTP 400: los datos de la consulta no son válidos.";
+
+                case TipoErrorClima.NoEncontrado:
+                    return "Error HTTP 404: no se encontró el recurso solicitado.";
+
+                case TipoErrorClima.ErrorServidor:
+                    return "Error HTTP 500: el servidor tuvo un problema.";
+
+                case TipoErrorClima.ErrorHttp:
+                    return $"Error HTTP {ex.CodigoHttp}: " +
+                           "el servicio no pudo completar la consulta.";
+
+                case TipoErrorClima.Timeout:
+                    return "La consulta demoró demasiado. Intentá nuevamente.";
+
+                case TipoErrorClima.SinConexion:
+                    return "No se pudo conectar con el servicio del clima. " +
+                           "Revisá la conexión o intentá nuevamente.";
+
+                case TipoErrorClima.FormatoInvalido:
+                    return "El servicio respondió, pero los datos del pronóstico " +
+                           "no tienen el formato esperado.";
+
+                default:
+                    return "Ocurrió un error inesperado al consultar el clima.";
+            }
+        }
+
         private async Task CargarDatosAsync()
         {
             if (EstaOcupado)
@@ -118,61 +150,11 @@ namespace ClubSocial.ViewModels
                     : $"Se cargaron {Dias.Count} días. " +
                       $"Última consulta: {DateTime.Now:HH:mm}.";
             }
-            catch (HttpRequestException ex)
+            catch (ClimaException ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex);
 
-                if (ex.StatusCode.HasValue)
-                {
-                    string mensaje;
-
-                    switch (ex.StatusCode.Value)
-                    {
-                        case HttpStatusCode.BadRequest:
-                            mensaje =
-                                "Error HTTP 400: los datos de la consulta no son válidos.";
-                            break;
-
-                        case HttpStatusCode.NotFound:
-                            mensaje =
-                                "Error HTTP 404: no se encontró el recurso solicitado.";
-                            break;
-
-                        case HttpStatusCode.InternalServerError:
-                            mensaje =
-                                "Error HTTP 500: el servidor tuvo un problema.";
-                            break;
-
-                        default:
-                            mensaje =
-                                $"Error HTTP {(int)ex.StatusCode.Value}: " +
-                                "el servicio no pudo completar la consulta.";
-                            break;
-                    }
-
-                    await MostrarErrorAsync(mensaje);
-                }
-                else
-                {
-                    await MostrarErrorAsync(
-                        "No se pudo conectar con el servicio del clima. " +
-                        "Revisá la conexión o intentá nuevamente.");
-                }
-            }
-            catch (OperationCanceledException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-
-                await MostrarErrorAsync(
-                    "La consulta demoró demasiado. Intentá nuevamente.");
-            }
-            catch (JsonException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-
-                await MostrarErrorAsync(
-                    "El servicio respondió, pero los datos del pronóstico " +
-                    "no tienen el formato esperado.");
+                await MostrarErrorAsync(ObtenerMensaje(ex));
             }
             catch (Exception ex)
             {

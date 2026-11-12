@@ -42,7 +42,7 @@ namespace ClubSocial
             builder.Services.AddSingleton<MainPage>();
 
             // Consulta y pantalla del clima.
-            builder.Services.AddSingleton<ClimaService>();
+            builder.Services.AddSingleton<ClimaService>(servicios => new ClimaService());
             builder.Services.AddSingleton<ClimaViewModel>();
             builder.Services.AddSingleton<ClimaPage>();
 
