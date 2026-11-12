@@ -14,11 +14,16 @@ namespace ClubSocial.Repositories
         private readonly Task _inicializacion;
 
         // Constructor que recibe la ruta de la base de datos SQLite.
-        public SocioRepositorySQLite(string rutaBaseDatos)
+        public SocioRepositorySQLite(string rutaBaseDatos) : this(new SQLiteAsyncConnection(rutaBaseDatos))
         {
-            _conexion = new SQLiteAsyncConnection(rutaBaseDatos);
+        }
 
-            // Si la tabla ya existe, SQLite conserva los datos.
+        // Constructor q recibe la conexion ya armada
+        public SocioRepositorySQLite(SQLiteAsyncConnection conexion)
+        {
+            _conexion = conexion;
+
+            //Si ya existe sqlite conserva los datos
             _inicializacion = _conexion.CreateTableAsync<Socio>();
         }
 

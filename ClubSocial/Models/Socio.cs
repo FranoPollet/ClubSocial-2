@@ -27,6 +27,9 @@ namespace ClubSocial.Models
 
         public string Sector { get; set; } = string.Empty;
 
+        // Ide de la categoría del socio (0 significa todavía sin categoría)
+        public int CategoriaId { get; set; }
+
         public DateTime FechaAlta { get; set; } = DateTime.Today;
 
         public bool Activo { get; set; } = true;
