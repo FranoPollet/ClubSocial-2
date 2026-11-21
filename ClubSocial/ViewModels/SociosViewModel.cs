@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ClubSocial.Models;
 using ClubSocial.Repositories;
 using Microsoft.Maui.Controls;
+using ClubSocial.Services;
 
 namespace ClubSocial.ViewModels
 {
@@ -190,18 +191,12 @@ namespace ClubSocial.ViewModels
             string apellido = (Apellido ?? string.Empty).Trim();
             string dni = (Dni ?? string.Empty).Trim();
 
-            if (string.IsNullOrWhiteSpace(nombre) ||
-                string.IsNullOrWhiteSpace(apellido))
-            {
-                Mensaje = "Completá el nombre y el apellido.";
-                return;
-            }
+            // Las reglas de nombre, apellido y DNI las valida ValidadorSocio
+            string? errorDatos = ValidadorSocio.Validar(nombre, apellido, dni);
 
-            // Es una validación de formato, no una verificación de identidad.
-            if (dni.Length < 7 || dni.Length > 8 ||
-                !dni.All(caracter => caracter >= '0' && caracter <= '9'))
+            if (errorDatos != null)
             {
-                Mensaje = "Ingresá un DNI de 7 u 8 números, sin puntos.";
+                Mensaje = errorDatos;
                 return;
             }
 
