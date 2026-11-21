@@ -13,23 +13,28 @@ namespace ClubSocial.ViewModels
     public class PreciosViewModel : BaseViewModel
     {
         private readonly ICategoriaRepository _categoriaRepositorio;
+        private readonly IActividadRepository _actividadRepositorio;
         private readonly ISocioRepository _socioRepositorio;
         private readonly PrecioService _precioService;
 
         private string _nombreCategoria = string.Empty;
         private bool _incluyeVale;
+        private string _nombreActividad = string.Empty;
 
-        private CategoriaConPrecio? _categoriaSeleccionada;
+        // Puede ser una categoría o una actividad: el panel de precios sirve para las dos
+        private ConceptoConPrecio? _conceptoSeleccionado;
         private string _montoTexto = string.Empty;
         private Moneda _monedaSeleccionada = Moneda.ARS;
         private DateTime _fechaVigencia = DateTime.Today;
 
-        private string _mensaje = "Cargando categorías...";
+        private string _mensaje = "Cargando categorías y actividades...";
         private bool _estaOcupado;
 
-        public ObservableCollection<CategoriaConPrecio> Categorias { get; } = new();
+        public ObservableCollection<ConceptoConPrecio> Categorias { get; } = new();
 
-        // Precios de la categoría elegida, del más nuevo al más viejo
+        public ObservableCollection<ConceptoConPrecio> Actividades { get; } = new();
+
+        // Precios del concepto elegido, del más nuevo al más viejo
         public ObservableCollection<Precio> Historial { get; } = new();
 
         public List<Moneda> Monedas { get; } = new() { Moneda.ARS, Moneda.USD };
@@ -46,25 +51,42 @@ namespace ClubSocial.ViewModels
             set => SetProperty(ref _incluyeVale, value);
         }
 
-        public CategoriaConPrecio? CategoriaSeleccionada
+        public string NombreActividad
         {
-            get => _categoriaSeleccionada;
+            get => _nombreActividad;
+            set => SetProperty(ref _nombreActividad, value);
+        }
+
+        public ConceptoConPrecio? ConceptoSeleccionado
+        {
+            get => _conceptoSeleccionado;
             set
             {
-                if (SetProperty(ref _categoriaSeleccionada, value))
+                if (SetProperty(ref _conceptoSeleccionado, value))
                 {
-                    // Estas dos propiedades dependen de la categoría elegida
-                    OnPropertyChanged(nameof(HayCategoriaSeleccionada));
+                    // Estas dos propiedades dependen del concepto elegido
+                    OnPropertyChanged(nameof(HayConceptoSeleccionado));
                     OnPropertyChanged(nameof(TituloPrecio));
                 }
             }
         }
 
-        public bool HayCategoriaSeleccionada => CategoriaSeleccionada != null;
+        public bool HayConceptoSeleccionado => ConceptoSeleccionado != null;
 
-        public string TituloPrecio => CategoriaSeleccionada == null
-            ? string.Empty
-            : $"Nuevo precio de la cuota: {CategoriaSeleccionada.Nombre}";
+        public string TituloPrecio
+        {
+            get
+            {
+                if (ConceptoSeleccionado == null)
+                {
+                    return string.Empty;
+                }
+
+                return ConceptoSeleccionado.Tipo == TipoConcepto.Cuota
+                    ? $"Nuevo precio de la cuota: {ConceptoSeleccionado.Nombre}"
+                    : $"Nuevo precio de la actividad: {ConceptoSeleccionado.Nombre}";
+            }
+        }
 
         public string MontoTexto
         {
@@ -101,7 +123,9 @@ namespace ClubSocial.ViewModels
                     CargarCommand.ChangeCanExecute();
                     GuardarCategoriaCommand.ChangeCanExecute();
                     EliminarCategoriaCommand.ChangeCanExecute();
-                    SeleccionarCategoriaCommand.ChangeCanExecute();
+                    GuardarActividadCommand.ChangeCanExecute();
+                    EliminarActividadCommand.ChangeCanExecute();
+                    SeleccionarConceptoCommand.ChangeCanExecute();
                     GuardarPrecioCommand.ChangeCanExecute();
                 }
             }
@@ -109,34 +133,46 @@ namespace ClubSocial.ViewModels
 
         public Command CargarCommand { get; }
         public Command GuardarCategoriaCommand { get; }
-        public Command<CategoriaConPrecio> EliminarCategoriaCommand { get; }
-        public Command<CategoriaConPrecio> SeleccionarCategoriaCommand { get; }
+        public Command<ConceptoConPrecio> EliminarCategoriaCommand { get; }
+        public Command GuardarActividadCommand { get; }
+        public Command<ConceptoConPrecio> EliminarActividadCommand { get; }
+        public Command<ConceptoConPrecio> SeleccionarConceptoCommand { get; }
         public Command GuardarPrecioCommand { get; }
         public Command CancelarPrecioCommand { get; }
 
         public PreciosViewModel(
             ICategoriaRepository categoriaRepositorio,
+            IActividadRepository actividadRepositorio,
             ISocioRepository socioRepositorio,
             PrecioService precioService)
         {
             _categoriaRepositorio = categoriaRepositorio;
+            _actividadRepositorio = actividadRepositorio;
             _socioRepositorio = socioRepositorio;
             _precioService = precioService;
 
             CargarCommand = new Command(
-                async () => await CargarCategoriasAsync(),
+                async () => await CargarAsync(),
                 () => !EstaOcupado);
 
             GuardarCategoriaCommand = new Command(
                 async () => await GuardarCategoriaAsync(),
                 () => !EstaOcupado);
 
-            EliminarCategoriaCommand = new Command<CategoriaConPrecio>(
+            EliminarCategoriaCommand = new Command<ConceptoConPrecio>(
                 async item => await EliminarCategoriaAsync(item),
                 item => item != null && !EstaOcupado);
 
-            SeleccionarCategoriaCommand = new Command<CategoriaConPrecio>(
-                async item => await SeleccionarCategoriaAsync(item),
+            GuardarActividadCommand = new Command(
+                async () => await GuardarActividadAsync(),
+                () => !EstaOcupado);
+
+            EliminarActividadCommand = new Command<ConceptoConPrecio>(
+                async item => await EliminarActividadAsync(item),
+                item => item != null && !EstaOcupado);
+
+            SeleccionarConceptoCommand = new Command<ConceptoConPrecio>(
+                async item => await SeleccionarConceptoAsync(item),
                 item => item != null && !EstaOcupado);
 
             GuardarPrecioCommand = new Command(
@@ -157,7 +193,15 @@ namespace ClubSocial.ViewModels
             return $"{precio.Moneda} {precio.Monto:N2} (desde {precio.VigenteDesde:dd/MM/yyyy})";
         }
 
-        private async Task ActualizarCategoriasAsync()
+        // Dice si el item que me pasan es el que está abierto en el panel de precios
+        private bool EsElSeleccionado(ConceptoConPrecio item)
+        {
+            return ConceptoSeleccionado != null
+                && ConceptoSeleccionado.Tipo == item.Tipo
+                && ConceptoSeleccionado.Id == item.Id;
+        }
+
+        private async Task ActualizarListasAsync()
         {
             var categorias = await _categoriaRepositorio.ObtenerTodosAsync();
 
@@ -169,10 +213,34 @@ namespace ClubSocial.ViewModels
                 var precio = await _precioService.ObtenerPrecioAsync(
                     TipoConcepto.Cuota, categoria.Id, DateTime.Today);
 
-                Categorias.Add(new CategoriaConPrecio
+                Categorias.Add(new ConceptoConPrecio
                 {
-                    Categoria = categoria,
-                    PrecioTexto = ArmarTextoPrecio(precio)
+                    Tipo = TipoConcepto.Cuota,
+                    Id = categoria.Id,
+                    Nombre = categoria.Nombre,
+                    DetalleTexto = categoria.IncluyeVale ? "Incluye vale de actividad" : "Sin vale",
+                    PrecioTexto = ArmarTextoPrecio(precio),
+                    Categoria = categoria
+                });
+            }
+
+            var actividades = await _actividadRepositorio.ObtenerTodosAsync();
+
+            Actividades.Clear();
+
+            foreach (var actividad in actividades)
+            {
+                var precio = await _precioService.ObtenerPrecioAsync(
+                    TipoConcepto.Actividad, actividad.Id, DateTime.Today);
+
+                Actividades.Add(new ConceptoConPrecio
+                {
+                    Tipo = TipoConcepto.Actividad,
+                    Id = actividad.Id,
+                    Nombre = actividad.Nombre,
+                    DetalleTexto = actividad.Activa ? "Activa" : "Inactiva",
+                    PrecioTexto = ArmarTextoPrecio(precio),
+                    Actividad = actividad
                 });
             }
         }
@@ -181,13 +249,13 @@ namespace ClubSocial.ViewModels
         {
             Historial.Clear();
 
-            if (CategoriaSeleccionada == null)
+            if (ConceptoSeleccionado == null)
             {
                 return;
             }
 
             var precios = await _precioService.ObtenerHistorialAsync(
-                TipoConcepto.Cuota, CategoriaSeleccionada.Categoria.Id);
+                ConceptoSeleccionado.Tipo, ConceptoSeleccionado.Id);
 
             foreach (var precio in precios)
             {
@@ -195,7 +263,7 @@ namespace ClubSocial.ViewModels
             }
         }
 
-        private async Task CargarCategoriasAsync()
+        private async Task CargarAsync()
         {
             if (EstaOcupado)
             {
@@ -206,12 +274,12 @@ namespace ClubSocial.ViewModels
 
             try
             {
-                await ActualizarCategoriasAsync();
-                Mensaje = $"Categorías registradas: {Categorias.Count}.";
+                await ActualizarListasAsync();
+                Mensaje = $"Categorías: {Categorias.Count}. Actividades: {Actividades.Count}.";
             }
             catch (Exception ex)
             {
-                Mensaje = "No se pudieron cargar las categorías.";
+                Mensaje = "No se pudieron cargar los datos.";
                 System.Diagnostics.Debug.WriteLine(ex);
             }
             finally
@@ -253,7 +321,7 @@ namespace ClubSocial.ViewModels
                 NombreCategoria = string.Empty;
                 IncluyeVale = false;
 
-                await ActualizarCategoriasAsync();
+                await ActualizarListasAsync();
                 Mensaje = "Categoría agregada. Ahora podés cargarle un precio.";
             }
             catch (Exception ex)
@@ -267,9 +335,9 @@ namespace ClubSocial.ViewModels
             }
         }
 
-        private async Task EliminarCategoriaAsync(CategoriaConPrecio item)
+        private async Task EliminarCategoriaAsync(ConceptoConPrecio item)
         {
-            if (item == null || EstaOcupado)
+            if (item == null || item.Categoria == null || EstaOcupado)
             {
                 return;
             }
@@ -281,7 +349,7 @@ namespace ClubSocial.ViewModels
                 // No dejo borrar una categoría que todavía tiene socios asignados
                 var socios = await _socioRepositorio.ObtenerTodosAsync();
 
-                if (socios.Any(socio => socio.CategoriaId == item.Categoria.Id))
+                if (socios.Any(socio => socio.CategoriaId == item.Id))
                 {
                     Mensaje = "No se puede eliminar: hay socios en esa categoría.";
                     return;
@@ -301,12 +369,12 @@ namespace ClubSocial.ViewModels
                 await _categoriaRepositorio.EliminarAsync(item.Categoria);
 
                 // Si estaba abierto el panel de precios de esa categoría, lo cierro
-                if (CategoriaSeleccionada?.Categoria.Id == item.Categoria.Id)
+                if (EsElSeleccionado(item))
                 {
                     CancelarPrecio();
                 }
 
-                await ActualizarCategoriasAsync();
+                await ActualizarListasAsync();
                 Mensaje = "Categoría eliminada.";
             }
             catch (Exception ex)
@@ -320,7 +388,96 @@ namespace ClubSocial.ViewModels
             }
         }
 
-        private async Task SeleccionarCategoriaAsync(CategoriaConPrecio item)
+        private async Task GuardarActividadAsync()
+        {
+            if (EstaOcupado)
+            {
+                return;
+            }
+
+            // Uso el mismo validador, pasándole que se trata de una actividad
+            string? error = ValidadorCategoria.Validar(
+                NombreActividad,
+                Actividades.Select(actividad => actividad.Nombre),
+                "actividad");
+
+            if (error != null)
+            {
+                Mensaje = error;
+                return;
+            }
+
+            EstaOcupado = true;
+
+            try
+            {
+                var actividad = new Actividad
+                {
+                    Nombre = NombreActividad.Trim()
+                };
+
+                await _actividadRepositorio.GuardarAsync(actividad);
+
+                NombreActividad = string.Empty;
+
+                await ActualizarListasAsync();
+                Mensaje = "Actividad agregada. Ahora podés cargarle un precio.";
+            }
+            catch (Exception ex)
+            {
+                Mensaje = "No se pudo guardar la actividad.";
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                EstaOcupado = false;
+            }
+        }
+
+        private async Task EliminarActividadAsync(ConceptoConPrecio item)
+        {
+            if (item == null || item.Actividad == null || EstaOcupado)
+            {
+                return;
+            }
+
+            EstaOcupado = true;
+
+            try
+            {
+                bool confirmar = await Shell.Current.DisplayAlert(
+                    "Eliminar actividad",
+                    $"¿Querés eliminar la actividad {item.Nombre}? Los pagos ya registrados se conservan.",
+                    "Eliminar",
+                    "Cancelar");
+
+                if (!confirmar)
+                {
+                    return;
+                }
+
+                await _actividadRepositorio.EliminarAsync(item.Actividad);
+
+                if (EsElSeleccionado(item))
+                {
+                    CancelarPrecio();
+                }
+
+                await ActualizarListasAsync();
+                Mensaje = "Actividad eliminada.";
+            }
+            catch (Exception ex)
+            {
+                Mensaje = "No se pudo eliminar la actividad.";
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                EstaOcupado = false;
+            }
+        }
+
+        private async Task SeleccionarConceptoAsync(ConceptoConPrecio item)
         {
             if (item == null || EstaOcupado)
             {
@@ -331,12 +488,12 @@ namespace ClubSocial.ViewModels
 
             try
             {
-                CategoriaSeleccionada = item;
+                ConceptoSeleccionado = item;
                 MontoTexto = string.Empty;
                 FechaVigencia = DateTime.Today;
 
                 await ActualizarHistorialAsync();
-                Mensaje = $"Cargá el nuevo precio de {item.Nombre}.";
+                Mensaje = $"Cargá el nuevo precio de {item.Nombre} (el formulario está arriba).";
             }
             catch (Exception ex)
             {
@@ -356,9 +513,9 @@ namespace ClubSocial.ViewModels
                 return;
             }
 
-            if (CategoriaSeleccionada == null)
+            if (ConceptoSeleccionado == null)
             {
-                Mensaje = "Elegí una categoría.";
+                Mensaje = "Elegí una categoría o una actividad.";
                 return;
             }
 
@@ -374,8 +531,8 @@ namespace ClubSocial.ViewModels
             {
                 // El servicio valida el monto y que la fecha sea posterior al último precio
                 string? error = await _precioService.CambiarPrecioAsync(
-                    TipoConcepto.Cuota,
-                    CategoriaSeleccionada.Categoria.Id,
+                    ConceptoSeleccionado.Tipo,
+                    ConceptoSeleccionado.Id,
                     monto,
                     MonedaSeleccionada,
                     FechaVigencia);
@@ -389,7 +546,7 @@ namespace ClubSocial.ViewModels
                 MontoTexto = string.Empty;
 
                 await ActualizarHistorialAsync();
-                await ActualizarCategoriasAsync();
+                await ActualizarListasAsync();
                 Mensaje = "Precio guardado.";
             }
             catch (Exception ex)
@@ -405,7 +562,7 @@ namespace ClubSocial.ViewModels
 
         private void CancelarPrecio()
         {
-            CategoriaSeleccionada = null;
+            ConceptoSeleccionado = null;
             MontoTexto = string.Empty;
             Historial.Clear();
         }

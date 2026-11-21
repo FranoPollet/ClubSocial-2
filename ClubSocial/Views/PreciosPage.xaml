@@ -164,7 +164,7 @@
 
             <!-- Panel para cambiar el precio: solo se ve si elegí una categoría -->
             <Border
-                IsVisible="{Binding HayCategoriaSeleccionada}"
+                IsVisible="{Binding HayConceptoSeleccionado}"
                 BackgroundColor="White"
                 Stroke="#203A54"
                 StrokeThickness="2"
@@ -314,7 +314,7 @@
 
                 <BindableLayout.ItemTemplate>
 
-                    <DataTemplate x:DataType="viewmodels:CategoriaConPrecio">
+                    <DataTemplate x:DataType="viewmodels:ConceptoConPrecio">
 
                         <Border
                             BackgroundColor="White"
@@ -335,7 +335,7 @@
                                     TextColor="#172B3A" />
 
                                 <Label
-                                    Text="{Binding ValeTexto}"
+                                    Text="{Binding DetalleTexto}"
                                     TextColor="#526171" />
 
                                 <Label
@@ -352,7 +352,7 @@
                                     <Button
                                         Grid.Column="0"
                                         Text="Cambiar precio"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=SeleccionarCategoriaCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=SeleccionarConceptoCommand}"
                                         CommandParameter="{Binding .}" />
 
                                     <Button
@@ -374,7 +374,125 @@
 
             </VerticalStackLayout>
 
+            <!-- Formulario para agregar una actividad -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Label
+                        Text="Nueva actividad"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Nombre"
+                            FontAttributes="Bold" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: Natación"
+                            Text="{Binding NombreActividad, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <Button
+                        Text="Guardar actividad"
+                        Command="{Binding GuardarActividadCommand}" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Lista de actividades -->
+            <Label
+                Text="Actividades registradas"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding Actividades}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="Todavía no hay actividades. Agregá la primera."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="viewmodels:ConceptoConPrecio">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="9">
+
+                                <Label
+                                    Text="{Binding Nombre}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A" />
+
+                                <Label
+                                    Text="{Binding PrecioTexto, StringFormat='Precio actual: {0}'}"
+                                    TextColor="#203A54"
+                                    FontAttributes="Bold"
+                                    LineBreakMode="WordWrap" />
+
+                                <Grid
+                                    ColumnDefinitions="*,*"
+                                    ColumnSpacing="10"
+                                    Margin="0,5,0,0">
+
+                                    <Button
+                                        Grid.Column="0"
+                                        Text="Cambiar precio"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=SeleccionarConceptoCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="Eliminar"
+                                        BackgroundColor="#A83232"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=EliminarActividadCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
         </VerticalStackLayout>
 
     </ScrollView>
+
 </ContentPage>
