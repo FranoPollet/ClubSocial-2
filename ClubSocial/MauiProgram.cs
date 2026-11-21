@@ -46,6 +46,13 @@ namespace ClubSocial
             builder.Services.AddSingleton<ClimaViewModel>();
             builder.Services.AddSingleton<ClimaPage>();
 
+            // Categorías, precios y su pantalla.
+            builder.Services.AddSingleton<ICategoriaRepository>(servicios => new CategoriaRepositorySQLite(rutaBaseDatos));
+            builder.Services.AddSingleton<IPrecioRepository>(servicios => new PrecioRepositorySQLite(rutaBaseDatos));
+            builder.Services.AddSingleton<PrecioService>();
+            builder.Services.AddSingleton<PreciosViewModel>();
+            builder.Services.AddSingleton<PreciosPage>();
+
             // El detalle se crea nuevamente cada vez que lo abrimos.
             builder.Services.AddTransient<DetalleClimaViewModel>();
             builder.Services.AddTransient<DetalleClimaPage>();

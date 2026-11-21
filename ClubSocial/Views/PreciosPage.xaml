@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ClubSocial.Models"
+             xmlns:viewmodels="clr-namespace:ClubSocial.ViewModels"
+             x:Class="ClubSocial.Views.PreciosPage"
+             x:DataType="viewmodels:PreciosViewModel"
+             Title="Categorías y precios"
+             BackgroundColor="#EEF2F5">
+
+    <ContentPage.Resources>
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#243447" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="PlaceholderColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Picker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="TitleColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#203A54" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <ScrollView>
+
+        <VerticalStackLayout
+            Padding="16"
+            Spacing="18"
+            MaximumWidthRequest="760"
+            HorizontalOptions="Fill">
+
+            <!-- Encabezado -->
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="Categorías y precios"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#203A54" />
+
+                <Label
+                    Text="Definí las categorías y el precio de la cuota de cada una."
+                    FontSize="15"
+                    TextColor="#526171" />
+
+            </VerticalStackLayout>
+
+            <!-- Mensaje de la última operación -->
+            <Grid
+                ColumnDefinitions="Auto,*"
+                ColumnSpacing="10">
+
+                <ActivityIndicator
+                    Grid.Column="0"
+                    IsRunning="{Binding EstaOcupado}"
+                    IsVisible="{Binding EstaOcupado}"
+                    Color="#203A54"
+                    VerticalOptions="Center" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Mensaje}"
+                    TextColor="#203A54"
+                    FontAttributes="Bold"
+                    LineBreakMode="WordWrap"
+                    VerticalOptions="Center" />
+
+            </Grid>
+
+            <!-- Formulario para agregar una categoría -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Label
+                        Text="Nueva categoría"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Nombre"
+                            FontAttributes="Bold" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: Cadete"
+                            Text="{Binding NombreCategoria, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <VerticalStackLayout
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Spacing="3">
+
+                            <Label
+                                Text="Incluye vale"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="La cuota trae una actividad obligatoria por mes."
+                                FontSize="12"
+                                TextColor="#526171" />
+
+                        </VerticalStackLayout>
+
+                        <Switch
+                            Grid.Column="1"
+                            IsToggled="{Binding IncluyeVale, Mode=TwoWay}"
+                            OnColor="#203A54"
+                            ThumbColor="#687A8B"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                    <Button
+                        Text="Guardar categoría"
+                        Command="{Binding GuardarCategoriaCommand}" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Panel para cambiar el precio: solo se ve si elegí una categoría -->
+            <Border
+                IsVisible="{Binding HayCategoriaSeleccionada}"
+                BackgroundColor="White"
+                Stroke="#203A54"
+                StrokeThickness="2"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Label
+                        Text="{Binding TituloPrecio}"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Monto"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Sin puntos. Los decimales van con coma."
+                            FontSize="12"
+                            TextColor="#526171" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: 12000"
+                            Keyboard="Numeric"
+                            Text="{Binding MontoTexto, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Moneda"
+                            FontAttributes="Bold" />
+
+                        <Picker
+                            Title="Elegir moneda"
+                            ItemsSource="{Binding Monedas}"
+                            SelectedItem="{Binding MonedaSeleccionada, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Rige desde"
+                            FontAttributes="Bold" />
+
+                        <DatePicker
+                            Date="{Binding FechaVigencia, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+
+                        <Button
+                            Grid.Column="0"
+                            Text="Guardar precio"
+                            Command="{Binding GuardarPrecioCommand}" />
+
+                        <Button
+                            Grid.Column="1"
+                            Text="Cerrar"
+                            Command="{Binding CancelarPrecioCommand}"
+                            BackgroundColor="#E6ECF2"
+                            TextColor="#203A54" />
+
+                    </Grid>
+
+                    <Label
+                        Text="Historial de precios"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <VerticalStackLayout
+                        Spacing="6"
+                        BindableLayout.ItemsSource="{Binding Historial}">
+
+                        <BindableLayout.EmptyView>
+
+                            <Label
+                                Text="Todavía no hay precios cargados."
+                                TextColor="#526171" />
+
+                        </BindableLayout.EmptyView>
+
+                        <BindableLayout.ItemTemplate>
+
+                            <DataTemplate x:DataType="models:Precio">
+
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding VigenteDesde, StringFormat='Desde {0:dd/MM/yyyy}'}" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding Moneda}"
+                                        FontAttributes="Bold" />
+
+                                    <Label
+                                        Grid.Column="2"
+                                        Text="{Binding Monto, StringFormat='{0:N2}'}"
+                                        FontAttributes="Bold" />
+
+                                </Grid>
+
+                            </DataTemplate>
+
+                        </BindableLayout.ItemTemplate>
+
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Lista de categorías -->
+            <Label
+                Text="Categorías registradas"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding Categorias}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="Todavía no hay categorías. Agregá la primera."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="viewmodels:CategoriaConPrecio">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="9">
+
+                                <Label
+                                    Text="{Binding Nombre}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A" />
+
+                                <Label
+                                    Text="{Binding ValeTexto}"
+                                    TextColor="#526171" />
+
+                                <Label
+                                    Text="{Binding PrecioTexto, StringFormat='Cuota actual: {0}'}"
+                                    TextColor="#203A54"
+                                    FontAttributes="Bold"
+                                    LineBreakMode="WordWrap" />
+
+                                <Grid
+                                    ColumnDefinitions="*,*"
+                                    ColumnSpacing="10"
+                                    Margin="0,5,0,0">
+
+                                    <Button
+                                        Grid.Column="0"
+                                        Text="Cambiar precio"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=SeleccionarCategoriaCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="Eliminar"
+                                        BackgroundColor="#A83232"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:PreciosViewModel}}, Path=EliminarCategoriaCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+</ContentPage>
