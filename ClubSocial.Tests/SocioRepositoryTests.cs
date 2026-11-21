@@ -33,7 +33,7 @@ namespace ClubSocial.Tests
                 Apellido = "Alvarez",
                 Dni = dni,
                 Telefono = "1120221218",
-                Sector = "Social"
+                CategoriaId = 1
             };
         }
 
@@ -83,6 +83,20 @@ namespace ClubSocial.Tests
             // Act y Assert: el índice único de Dni no permite el duplicado
             await Assert.ThrowsAnyAsync<SQLiteException>(
                 () => _repositorio.GuardarAsync(NuevoSocio("38120918")));
+        }
+
+        [Fact]
+        public async Task ObtenerTodosAsync_SocioGuardado_ConservaSuCategoriaId()
+        {
+            // Arrange
+            await _repositorio.GuardarAsync(NuevoSocio("38120918"));
+
+            // Act
+            var lista = await _repositorio.ObtenerTodosAsync();
+
+            // Assert
+            Assert.Single(lista);
+            Assert.Equal(1, lista[0].CategoriaId);
         }
     }
 }

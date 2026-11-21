@@ -25,7 +25,9 @@ namespace ClubSocial.Models
 
         public string Email { get; set; } = string.Empty;
 
-        public string Sector { get; set; } = string.Empty;
+        // Solo sirve para mostrar el nombre en la lista, no se guarda en la base
+        [Ignore]
+        public string CategoriaNombre { get; set; } = "Sin categoría";
 
         // Ide de la categoría del socio (0 significa todavía sin categoría)
         public int CategoriaId { get; set; }

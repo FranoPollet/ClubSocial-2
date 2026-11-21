@@ -92,7 +92,7 @@
                         TextColor="#203A54" />
 
                     <Label
-                        Text="Nombre, apellido, DNI y sector son obligatorios."
+                        Text="Nombre, apellido, DNI y categoría son obligatorios."
                         TextColor="#526171" />
 
                     <VerticalStackLayout Spacing="5">
@@ -162,7 +162,7 @@
                     <VerticalStackLayout Spacing="5">
 
                         <Label
-                            Text="Sector del club"
+                            Text="Categoría del club"
                             FontAttributes="Bold" />
 
                         <Label
@@ -184,9 +184,10 @@
 
                                 <Picker
                                     Grid.ColumnSpan="2"
-                                    Title="Elegir sector"
-                                    ItemsSource="{Binding Sectores}"
-                                    SelectedItem="{Binding SectorSeleccionado, Mode=TwoWay}"
+                                    Title="Elegir categoría"
+                                    ItemsSource="{Binding Categorias}"
+                                    ItemDisplayBinding="{Binding Nombre, x:DataType=models:Categoria}"
+                                    SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}"
                                     BackgroundColor="Transparent"
                                     TextColor="#172B3A"
                                     TitleColor="#526171"
@@ -335,7 +336,7 @@
                                     Text="{Binding Dni, StringFormat='DNI: {0}'}" />
 
                                 <Label
-                                    Text="{Binding Sector, StringFormat='Sector: {0}'}" />
+                                    Text="{Binding CategoriaNombre, StringFormat='Categoría: {0}'}" />
 
                                 <Label
                                     Text="{Binding EstadoTexto, StringFormat='Estado: {0}'}"

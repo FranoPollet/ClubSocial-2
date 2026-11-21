@@ -6,14 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using ClubSocial.Models;
 using ClubSocial.Repositories;
-using Microsoft.Maui.Controls;
 using ClubSocial.Services;
+using Microsoft.Maui.Controls;
 
 namespace ClubSocial.ViewModels
 {
     public class SociosViewModel : BaseViewModel
     {
         private readonly ISocioRepository _repositorio;
+        private readonly ICategoriaRepository _categoriaRepositorio;
 
         // Guardamos estos datos para saber qué socio estamos editando.
         private int _idEnEdicion;
@@ -24,7 +25,7 @@ namespace ClubSocial.ViewModels
         private string _dni = string.Empty;
         private string _telefono = string.Empty;
         private string _email = string.Empty;
-        private string? _sectorSeleccionado;
+        private Categoria? _categoriaSeleccionada;
         private bool _activo = true;
         private string _mensaje = "Presioná Cargar socios para consultar la lista.";
         private string _tituloFormulario = "Nuevo socio";
@@ -32,13 +33,8 @@ namespace ClubSocial.ViewModels
 
         public ObservableCollection<Socio> Socios { get; } = new();
 
-        public List<string> Sectores { get; } = new()
-        {
-            "Social",
-            "Fútbol",
-            "Básquet",
-            "Natación"
-        };
+        // Las categorías salen de la base de datos (se cargan en la pestaña Precios)
+        public ObservableCollection<Categoria> Categorias { get; } = new();
 
         public string Nombre
         {
@@ -70,10 +66,10 @@ namespace ClubSocial.ViewModels
             set => SetProperty(ref _email, value);
         }
 
-        public string? SectorSeleccionado
+        public Categoria? CategoriaSeleccionada
         {
-            get => _sectorSeleccionado;
-            set => SetProperty(ref _sectorSeleccionado, value);
+            get => _categoriaSeleccionada;
+            set => SetProperty(ref _categoriaSeleccionada, value);
         }
 
         public bool Activo
@@ -117,9 +113,12 @@ namespace ClubSocial.ViewModels
         public Command<Socio> EditarSocioCommand { get; }
         public Command<Socio> EliminarSocioCommand { get; }
 
-        public SociosViewModel(ISocioRepository repositorio)
+        public SociosViewModel(
+            ISocioRepository repositorio,
+            ICategoriaRepository categoriaRepositorio)
         {
             _repositorio = repositorio;
+            _categoriaRepositorio = categoriaRepositorio;
 
             CargarSociosCommand = new Command(
                 async () => await CargarSociosAsync(),
@@ -142,14 +141,38 @@ namespace ClubSocial.ViewModels
                 socio => socio != null && !EstaOcupado);
         }
 
+        private async Task ActualizarCategoriasAsync()
+        {
+            // Guardo cuál estaba elegida porque al vaciar la lista el Picker la deselecciona
+            int idElegida = CategoriaSeleccionada?.Id ?? 0;
+
+            var categoriasGuardadas = await _categoriaRepositorio.ObtenerTodosAsync();
+
+            Categorias.Clear();
+
+            foreach (var categoria in categoriasGuardadas)
+            {
+                Categorias.Add(categoria);
+            }
+
+            CategoriaSeleccionada = Categorias.FirstOrDefault(categoria => categoria.Id == idElegida);
+        }
+
         private async Task ActualizarListaAsync()
         {
+            // Primero las categorías, para poder mostrar el nombre de la de cada socio
+            await ActualizarCategoriasAsync();
+
             var sociosGuardados = await _repositorio.ObtenerTodosAsync();
 
             Socios.Clear();
 
             foreach (var socio in sociosGuardados)
             {
+                var categoria = Categorias.FirstOrDefault(c => c.Id == socio.CategoriaId);
+
+                socio.CategoriaNombre = categoria?.Nombre ?? "Sin categoría";
+
                 Socios.Add(socio);
             }
         }
@@ -167,7 +190,10 @@ namespace ClubSocial.ViewModels
             try
             {
                 await ActualizarListaAsync();
-                Mensaje = $"Socios registrados: {Socios.Count}.";
+
+                Mensaje = Categorias.Count == 0
+                    ? $"Socios registrados: {Socios.Count}. Primero creá una categoría en la pestaña Precios."
+                    : $"Socios registrados: {Socios.Count}.";
             }
             catch (Exception ex)
             {
@@ -191,7 +217,7 @@ namespace ClubSocial.ViewModels
             string apellido = (Apellido ?? string.Empty).Trim();
             string dni = (Dni ?? string.Empty).Trim();
 
-            // Las reglas de nombre, apellido y DNI las valida ValidadorSocio
+            // Las reglas de nombre, apellido, DNI y categoría las valida ValidadorSocio
             string? errorDatos = ValidadorSocio.Validar(nombre, apellido, dni);
 
             if (errorDatos != null)
@@ -200,9 +226,11 @@ namespace ClubSocial.ViewModels
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(SectorSeleccionado))
+            string? errorCategoria = ValidadorSocio.ValidarCategoria(CategoriaSeleccionada?.Id ?? 0);
+
+            if (errorCategoria != null)
             {
-                Mensaje = "Seleccioná un sector del club.";
+                Mensaje = errorCategoria;
                 return;
             }
 
@@ -232,7 +260,7 @@ namespace ClubSocial.ViewModels
                     Dni = dni,
                     Telefono = (Telefono ?? string.Empty).Trim(),
                     Email = (Email ?? string.Empty).Trim(),
-                    Sector = SectorSeleccionado!,
+                    CategoriaId = CategoriaSeleccionada!.Id,
                     FechaAlta = _fechaAltaEnEdicion,
                     Activo = Activo
                 };
@@ -289,7 +317,7 @@ namespace ClubSocial.ViewModels
             Dni = string.Empty;
             Telefono = string.Empty;
             Email = string.Empty;
-            SectorSeleccionado = null;
+            CategoriaSeleccionada = null;
             Activo = true;
             TituloFormulario = "Nuevo socio";
         }
@@ -310,7 +338,9 @@ namespace ClubSocial.ViewModels
             Dni = socio.Dni;
             Telefono = socio.Telefono;
             Email = socio.Email;
-            SectorSeleccionado = socio.Sector;
+
+            // Si el socio no tenía categoría queda en null y hay que elegirla
+            CategoriaSeleccionada = Categorias.FirstOrDefault(categoria => categoria.Id == socio.CategoriaId);
             Activo = socio.Activo;
 
             TituloFormulario = "Editar socio";
