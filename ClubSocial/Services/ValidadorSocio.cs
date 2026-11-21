@@ -27,5 +27,16 @@ namespace ClubSocial.Services
 
             return null;
         }
+
+        // El socio tiene que tener una categoría elegida(Id 0 significa "ninguna")
+        public static string? ValidarCategoria(int categoriaId)
+        {
+            if (categoriaId <= 0)
+            {
+                return "Seleccioná una categoría del club.";
+            }
+
+            return null;
+        }
     }
 }

@@ -43,5 +43,23 @@ namespace ClubSocial.Tests
 
             Assert.NotNull(error);
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void ValidarCategoria_SinCategoria_DevuelveError(int categoriaId)
+        {
+            var error = ValidadorSocio.ValidarCategoria(categoriaId);
+
+            Assert.NotNull(error);
+        }
+
+        [Fact]
+        public void ValidarCategoria_CategoriaElegida_DevuelveNull()
+        {
+            var error = ValidadorSocio.ValidarCategoria(3);
+
+            Assert.Null(error);
+        }
     }
 }
