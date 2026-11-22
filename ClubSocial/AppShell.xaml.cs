@@ -5,13 +5,18 @@ namespace ClubSocial
 {
     public partial class AppShell : Shell
     {
-        public AppShell(MainPage mainPage, ClimaPage climaPage, PreciosPage preciosPage)
+        public AppShell(
+            MainPage mainPage,
+            CobranzaPage cobranzaPage,
+            PreciosPage preciosPage,
+            ClimaPage climaPage)
         {
             InitializeComponent();
 
             SociosContent.Content = mainPage;
-            ClimaContent.Content = climaPage;
+            CobranzaContent.Content = cobranzaPage;
             PreciosContent.Content = preciosPage;
+            ClimaContent.Content = climaPage;
 
             Routing.RegisterRoute(
                 "detalleClima",

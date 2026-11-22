@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ClubSocial.Models"
+    xmlns:viewmodels="clr-namespace:ClubSocial.ViewModels"
+    x:Class="ClubSocial.Views.CobranzaPage"
+    x:DataType="viewmodels:CobranzaViewModel"
+    Title="Cobranza"
+    BackgroundColor="#EEF2F5">
+
+    <ContentPage.Resources>
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#243447" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="PlaceholderColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Picker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="TitleColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#203A54" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <ScrollView x:Name="Pantalla">
+
+        <VerticalStackLayout
+            Padding="16"
+            Spacing="18"
+            MaximumWidthRequest="760"
+            HorizontalOptions="Fill">
+
+            <!-- Encabezado -->
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="Cobranza"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#203A54" />
+
+                <Label
+                    Text="Cuotas y actividades cobradas mes a mes."
+                    FontSize="15"
+                    TextColor="#526171" />
+
+            </VerticalStackLayout>
+
+            <!-- Selector de mes -->
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+                <Button
+                    Grid.Column="0"
+                    Text="◀"
+                    WidthRequest="60"
+                    Command="{Binding MesAnteriorCommand}" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding PeriodoTexto}"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#203A54"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+
+                <Button
+                    Grid.Column="2"
+                    Text="▶"
+                    WidthRequest="60"
+                    Command="{Binding MesSiguienteCommand}" />
+
+            </Grid>
+
+            <!-- Resumen del mes -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="14">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+
+                <Label
+                    Text="{Binding ResumenTexto}"
+                    FontAttributes="Bold"
+                    TextColor="#203A54"
+                    LineBreakMode="WordWrap" />
+
+            </Border>
+
+            <!-- Mensaje de la última operación -->
+            <Label
+                Text="{Binding Mensaje}"
+                TextColor="#203A54"
+                FontAttributes="Bold"
+                LineBreakMode="WordWrap" />
+
+            <!-- Panel de cobro: solo se ve si elegí un socio -->
+            <Border
+                IsVisible="{Binding HayCobroAbierto}"
+                BackgroundColor="White"
+                Stroke="#203A54"
+                StrokeThickness="2"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Label
+                        Text="{Binding TituloCobro}"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54"
+                        LineBreakMode="WordWrap" />
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Fecha de pago"
+                            FontAttributes="Bold" />
+
+                        <DatePicker
+                            Date="{Binding FechaPago, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <!-- Solo para actividades -->
+                    <VerticalStackLayout
+                        Spacing="5"
+                        IsVisible="{Binding EsActividad}">
+
+                        <Label
+                            Text="Actividad"
+                            FontAttributes="Bold" />
+
+                        <Picker
+                            Title="Elegir actividad"
+                            ItemsSource="{Binding ActividadesDisponibles}"
+                            ItemDisplayBinding="{Binding Nombre, x:DataType=models:Actividad}"
+                            SelectedItem="{Binding ActividadSeleccionada, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <!-- Solo si el socio tiene el vale libre -->
+                    <Grid
+                        ColumnDefinitions="*,Auto"
+                        IsVisible="{Binding MostrarVale}">
+
+                        <VerticalStackLayout
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Spacing="3">
+
+                            <Label
+                                Text="Usar el vale del mes"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="La actividad no se cobra."
+                                FontSize="12"
+                                TextColor="#526171" />
+
+                        </VerticalStackLayout>
+
+                        <Switch
+                            Grid.Column="1"
+                            IsToggled="{Binding UsarVale, Mode=TwoWay}"
+                            OnColor="#203A54"
+                            ThumbColor="#687A8B"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                    <Label
+                        Text="{Binding PrecioPrevistoTexto}"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <!-- Solo si el precio está en dólares -->
+                    <VerticalStackLayout
+                        Spacing="8"
+                        IsVisible="{Binding PideCotizacion}">
+
+                        <Label
+                            Text="Cotización del dólar (venta)"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Si cobrás un día anterior, escribí el valor de ese día. Decimales con coma."
+                            FontSize="12"
+                            TextColor="#526171" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: 1570"
+                            Keyboard="Numeric"
+                            Text="{Binding CotizacionTexto, Mode=TwoWay}" />
+
+                        <Button
+                            Text="Traer dólar de hoy"
+                            Command="{Binding TraerDolarCommand}"
+                            BackgroundColor="#E6ECF2"
+                            TextColor="#203A54" />
+
+                    </VerticalStackLayout>
+
+                    <Label
+                        Text="{Binding TotalPesosTexto}"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="#172B3A" />
+
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+
+                        <Button
+                            Grid.Column="0"
+                            Text="Registrar cobro"
+                            Command="{Binding RegistrarCobroCommand}" />
+
+                        <Button
+                            Grid.Column="1"
+                            Text="Cancelar"
+                            Command="{Binding CancelarCobroCommand}"
+                            BackgroundColor="#E6ECF2"
+                            TextColor="#203A54" />
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Filtros -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label
+                        Text="Filtrar socios"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <Entry
+                        Placeholder="Buscar por nombre, apellido o DNI"
+                        Text="{Binding Busqueda, Mode=TwoWay}" />
+
+                    <Picker
+                        Title="Categoría"
+                        ItemsSource="{Binding CategoriasFiltro}"
+                        ItemDisplayBinding="{Binding Nombre, x:DataType=models:Categoria}"
+                        SelectedItem="{Binding FiltroCategoria, Mode=TwoWay}" />
+
+                    <Picker
+                        Title="Estado de la cuota"
+                        ItemsSource="{Binding Estados}"
+                        SelectedItem="{Binding FiltroEstado, Mode=TwoWay}" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Lista de socios -->
+            <Label
+                Text="Socios"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding SociosCobranza}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="No hay socios para mostrar con estos filtros."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="viewmodels:SocioCobranza">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="8">
+
+                                <Label
+                                    Text="{Binding NombreCompleto}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A"
+                                    LineBreakMode="WordWrap" />
+
+                                <Label
+                                    Text="{Binding CategoriaTexto, StringFormat='Categoría: {0}'}"
+                                    TextColor="#526171" />
+
+                                <Label
+                                    Text="{Binding CuotaTexto}"
+                                    TextColor="#203A54"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    Text="{Binding ActividadesTexto}"
+                                    TextColor="#526171" />
+
+                                <Grid
+                                    ColumnDefinitions="*,*"
+                                    ColumnSpacing="10"
+                                    Margin="0,5,0,0">
+
+                                    <Button
+                                        Grid.Column="0"
+                                        Text="Cobrar cuota"
+                                        IsVisible="{Binding CuotaPendiente}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CobranzaViewModel}}, Path=CobrarCuotaCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="Cobrar actividad"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CobranzaViewModel}}, Path=CobrarActividadCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+            <!-- Pagos del mes -->
+            <Label
+                Text="Pagos del mes"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding PagosDelMes}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="Todavía no hay pagos en este mes."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="viewmodels:PagoItem">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label
+                                    Text="{Binding SocioTexto}"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A"
+                                    LineBreakMode="WordWrap" />
+
+                                <Label
+                                    Text="{Binding Detalle}" />
+
+                                <Label
+                                    Text="{Binding MontoTexto}"
+                                    TextColor="#203A54"
+                                    FontAttributes="Bold"
+                                    LineBreakMode="WordWrap" />
+
+                                <Label
+                                    Text="{Binding FechaTexto}"
+                                    TextColor="#526171" />
+
+                                <Button
+                                    Text="Anular pago"
+                                    BackgroundColor="#A83232"
+                                    Margin="0,5,0,0"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CobranzaViewModel}}, Path=AnularPagoCommand}"
+                                    CommandParameter="{Binding .}" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>

@@ -54,6 +54,13 @@ namespace ClubSocial
             builder.Services.AddSingleton<PreciosPage>();
             builder.Services.AddSingleton<IActividadRepository>(servicios => new ActividadRepositorySQLite(rutaBaseDatos));
 
+            // Cobranza y su pantalla.
+            builder.Services.AddSingleton<IPagoRepository>(servicios => new PagoRepositorySQLite(rutaBaseDatos));
+            builder.Services.AddSingleton<ICotizacionService>(servicios => new CotizacionService());
+            builder.Services.AddSingleton<CobranzaService>();
+            builder.Services.AddSingleton<CobranzaViewModel>();
+            builder.Services.AddSingleton<CobranzaPage>();
+
             // El detalle se crea nuevamente cada vez que lo abrimos.
             builder.Services.AddTransient<DetalleClimaViewModel>();
             builder.Services.AddTransient<DetalleClimaPage>();

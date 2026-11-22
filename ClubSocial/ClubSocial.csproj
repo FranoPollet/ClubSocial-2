@@ -68,6 +68,9 @@
 	  <MauiXaml Update="Views\ClimaPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\CobranzaPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\DetalleClimaPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

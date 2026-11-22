@@ -25,12 +25,12 @@
 
         </Tab>
 
-        <Tab Title="Clima">
+        <Tab Title="Cobranza">
 
             <ShellContent
-                x:Name="ClimaContent"
-                Title="Clima"
-                Route="clima" />
+                x:Name="CobranzaContent"
+                Title="Cobranza"
+                Route="cobranza" />
 
         </Tab>
 
@@ -40,6 +40,15 @@
                 x:Name="PreciosContent"
                 Title="Precios"
                 Route="precios" />
+
+        </Tab>
+
+        <Tab Title="Clima">
+
+            <ShellContent
+                x:Name="ClimaContent"
+                Title="Clima"
+                Route="clima" />
 
         </Tab>
 
