@@ -42,7 +42,8 @@ namespace ClubSocial.Services
             Categoria categoria,
             DateTime periodo,
             DateTime fechaPago,
-            decimal cotizacion)
+            decimal cotizacion,
+            int cuentaId = 0)
         {
             periodo = PrimerDiaDelMes(periodo);
 
@@ -59,7 +60,7 @@ namespace ClubSocial.Services
 
             return await GuardarCobroAsync(
                 socioId, TipoConcepto.Cuota, categoria.Id, $"Cuota {categoria.Nombre}",
-                precio, periodo, fechaPago, cotizacion);
+                precio, periodo, fechaPago, cotizacion, cuentaId);
         }
 
         public async Task<string?> RegistrarActividadAsync(
@@ -69,7 +70,8 @@ namespace ClubSocial.Services
             DateTime periodo,
             DateTime fechaPago,
             decimal cotizacion,
-            bool usarVale)
+            bool usarVale,
+            int cuentaId = 0)
         {
             periodo = PrimerDiaDelMes(periodo);
 
@@ -80,7 +82,7 @@ namespace ClubSocial.Services
                     return "El socio no tiene un vale disponible en ese mes.";
                 }
 
-                // Con vale no se cobra nada: el monto queda en 0
+                // Con vale no se cobra nada: el monto queda en 0 y no entra a ninguna cuenta
                 var pagoConVale = new Pago
                 {
                     SocioId = socioId,
@@ -105,7 +107,7 @@ namespace ClubSocial.Services
 
             return await GuardarCobroAsync(
                 socioId, TipoConcepto.Actividad, actividad.Id, $"Actividad {actividad.Nombre}",
-                precio, periodo, fechaPago, cotizacion);
+                precio, periodo, fechaPago, cotizacion, cuentaId);
         }
 
         // Arma el pago con una copia de los valores de ese momento y lo guarda
@@ -117,7 +119,8 @@ namespace ClubSocial.Services
             Precio? precio,
             DateTime periodo,
             DateTime fechaPago,
-            decimal cotizacion)
+            decimal cotizacion,
+            int cuentaId)
         {
             if (precio == null)
             {
@@ -143,6 +146,7 @@ namespace ClubSocial.Services
                 Cotizacion = enDolares ? cotizacion : 0,
                 MontoEnPesos = enDolares ? Math.Round(precio.Monto * cotizacion, 2) : precio.Monto,
                 ConVale = false,
+                CuentaId = cuentaId,
                 Detalle = detalle
             };
 

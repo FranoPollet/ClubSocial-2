@@ -38,6 +38,9 @@ namespace ClubSocial.Models
         // true si se pagó con el vale incluido en la cuota
         public bool ConVale { get; set; }
 
+        // Cuenta en la que entró la plata (0 = sin cuenta asignada)
+        public int CuentaId { get; set; }
+
         // Texto guardado, por si después se renombra la categoría o la actividad
         public string Detalle { get; set; } = string.Empty;
     }
