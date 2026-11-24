@@ -82,16 +82,7 @@ namespace ClubSocial.ViewModels
             }
         }
 
-        public string PeriodoTexto
-        {
-            get
-            {
-                string mes = _periodo.ToString("MMMM yyyy", new CultureInfo("es-AR"));
-
-                // Le pongo la primera letra en mayúscula
-                return char.ToUpper(mes[0]) + mes.Substring(1);
-            }
-        }
+        public string PeriodoTexto => FormatoFecha.MesYAnio(_periodo);
 
         public string ResumenTexto
         {

@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ClubSocial.Models"
+    xmlns:viewmodels="clr-namespace:ClubSocial.ViewModels"
+    x:Class="ClubSocial.Views.GastosPage"
+    x:DataType="viewmodels:GastosViewModel"
+    Title="Gastos"
+    BackgroundColor="#EEF2F5">
+
+    <ContentPage.Resources>
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#243447" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="PlaceholderColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Picker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="TitleColor" Value="#596675" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="TextColor" Value="#172B3A" />
+            <Setter Property="BackgroundColor" Value="#F1F4F7" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#203A54" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <ScrollView>
+
+        <VerticalStackLayout
+            Padding="16"
+            Spacing="18"
+            MaximumWidthRequest="760"
+            HorizontalOptions="Fill">
+
+            <!-- Encabezado -->
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="Gastos"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#203A54" />
+
+                <Label
+                    Text="Lo que gasta el club, mes a mes."
+                    FontSize="15"
+                    TextColor="#526171" />
+
+            </VerticalStackLayout>
+
+            <!-- Selector de mes -->
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+                <Button
+                    Grid.Column="0"
+                    Text="◀"
+                    WidthRequest="60"
+                    Command="{Binding MesAnteriorCommand}" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding PeriodoTexto}"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#203A54"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+
+                <Button
+                    Grid.Column="2"
+                    Text="▶"
+                    WidthRequest="60"
+                    Command="{Binding MesSiguienteCommand}" />
+
+            </Grid>
+
+            <!-- Total del mes -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="14">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+
+                <Label
+                    Text="{Binding TotalTexto}"
+                    FontAttributes="Bold"
+                    TextColor="#203A54" />
+
+            </Border>
+
+            <!-- Mensaje de la última operación -->
+            <Grid
+                ColumnDefinitions="Auto,*"
+                ColumnSpacing="10">
+
+                <ActivityIndicator
+                    Grid.Column="0"
+                    IsRunning="{Binding EstaOcupado}"
+                    IsVisible="{Binding EstaOcupado}"
+                    Color="#203A54"
+                    VerticalOptions="Center" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Mensaje}"
+                    TextColor="#203A54"
+                    FontAttributes="Bold"
+                    LineBreakMode="WordWrap"
+                    VerticalOptions="Center" />
+
+            </Grid>
+
+            <!-- Formulario de gasto -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Label
+                        Text="Nuevo gasto"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="¿En qué se gastó?"
+                            FontAttributes="Bold" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: Compra de pelotas"
+                            Text="{Binding Descripcion, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Monto"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Sin puntos. Los decimales van con coma."
+                            FontSize="12"
+                            TextColor="#526171" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: 25000"
+                            Keyboard="Numeric"
+                            Text="{Binding MontoTexto, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Moneda"
+                            FontAttributes="Bold" />
+
+                        <Picker
+                            Title="Elegir moneda"
+                            ItemsSource="{Binding Monedas}"
+                            SelectedItem="{Binding MonedaSeleccionada, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <!-- Solo si el gasto es en dólares -->
+                    <VerticalStackLayout
+                        Spacing="8"
+                        IsVisible="{Binding PideCotizacion}">
+
+                        <Label
+                            Text="Cotización del dólar (venta)"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Si el gasto es de otro día, escribí el valor de ese día. Decimales con coma."
+                            FontSize="12"
+                            TextColor="#526171" />
+
+                        <Entry
+                            Placeholder="Por ejemplo: 1570"
+                            Keyboard="Numeric"
+                            Text="{Binding CotizacionTexto, Mode=TwoWay}" />
+
+                        <Button
+                            Text="Traer dólar de hoy"
+                            Command="{Binding TraerDolarCommand}"
+                            BackgroundColor="#E6ECF2"
+                            TextColor="#203A54" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Fecha del gasto"
+                            FontAttributes="Bold" />
+
+                        <DatePicker
+                            Date="{Binding FechaGasto, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Cuenta de la que salió la plata"
+                            FontAttributes="Bold" />
+
+                        <Picker
+                            Title="Elegir cuenta"
+                            ItemsSource="{Binding CuentasDisponibles}"
+                            ItemDisplayBinding="{Binding Nombre, x:DataType=models:Cuenta}"
+                            SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
+                    <Button
+                        Text="Registrar gasto"
+                        Command="{Binding RegistrarGastoCommand}" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Lista de gastos del mes -->
+            <Label
+                Text="Gastos del mes"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding GastosDelMes}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="Todavía no hay gastos en este mes."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="viewmodels:GastoItem">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label
+                                    Text="{Binding Descripcion}"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A"
+                                    LineBreakMode="WordWrap" />
+
+                                <Label
+                                    Text="{Binding MontoTexto}"
+                                    TextColor="#203A54"
+                                    FontAttributes="Bold"
+                                    LineBreakMode="WordWrap" />
+
+                                <Label
+                                    Text="{Binding FechaTexto}"
+                                    TextColor="#526171" />
+
+                                <Button
+                                    Text="Anular gasto"
+                                    BackgroundColor="#A83232"
+                                    Margin="0,5,0,0"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:GastosViewModel}}, Path=AnularGastoCommand}"
+                                    CommandParameter="{Binding .}" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>

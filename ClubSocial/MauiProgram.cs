@@ -65,6 +65,12 @@ namespace ClubSocial
             builder.Services.AddSingleton<ICuentaRepository>(servicios => new CuentaRepositorySQLite(rutaBaseDatos));
             builder.Services.AddSingleton<CuentasViewModel>();
 
+            // Gastos y su pantalla.
+            builder.Services.AddSingleton<IGastoRepository>(servicios => new GastoRepositorySQLite(rutaBaseDatos));
+            builder.Services.AddSingleton<GastoService>();
+            builder.Services.AddSingleton<GastosViewModel>();
+            builder.Services.AddSingleton<GastosPage>();
+
             // El detalle se crea nuevamente cada vez que lo abrimos.
             builder.Services.AddTransient<DetalleClimaViewModel>();
             builder.Services.AddTransient<DetalleClimaPage>();

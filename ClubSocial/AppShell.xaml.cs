@@ -8,6 +8,7 @@ namespace ClubSocial
         public AppShell(
             MainPage mainPage,
             CobranzaPage cobranzaPage,
+            GastosPage gastosPage,
             PreciosPage preciosPage,
             ClimaPage climaPage)
         {
@@ -15,6 +16,7 @@ namespace ClubSocial
 
             SociosContent.Content = mainPage;
             CobranzaContent.Content = cobranzaPage;
+            GastosContent.Content = gastosPage;
             PreciosContent.Content = preciosPage;
             ClimaContent.Content = climaPage;
 
