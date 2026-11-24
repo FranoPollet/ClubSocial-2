@@ -5,7 +5,7 @@
              xmlns:viewmodels="clr-namespace:ClubSocial.ViewModels"
              x:Class="ClubSocial.Views.PreciosPage"
              x:DataType="viewmodels:PreciosViewModel"
-             Title="Categorías y precios"
+             Title="Ajustes"
              BackgroundColor="#EEF2F5">
 
     <ContentPage.Resources>
@@ -488,6 +488,114 @@
                     </DataTemplate>
 
                 </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+            <!-- Cuentas: dónde entra y sale la plata -->
+            <VerticalStackLayout
+                BindingContext="{Binding Cuentas}">
+
+                <VerticalStackLayout
+                    Spacing="12"
+                     x:DataType="viewmodels:CuentasViewModel">
+
+                    <Label
+                        Text="Cuentas"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#203A54" />
+
+                    <Border
+                         BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+
+                            <Label
+                                Text="Nueva cuenta"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#203A54" />
+
+                            <Entry
+                                Placeholder="Por ejemplo: Efectivo o Banco Nación"
+                                Text="{Binding NombreCuenta, Mode=TwoWay}" />
+
+                            <Button
+                                Text="Guardar cuenta"
+                                Command="{Binding GuardarCuentaCommand}" />
+
+                            <Label
+                                Text="{Binding Mensaje}"
+                                TextColor="#203A54"
+                                FontAttributes="Bold"
+                                LineBreakMode="WordWrap" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                    <VerticalStackLayout
+                        Spacing="12"
+                        BindableLayout.ItemsSource="{Binding Lista}">
+
+                        <BindableLayout.EmptyView>
+
+                            <Label
+                                Text="Todavía no hay cuentas. Agregá la primera."
+                                Margin="0,8"
+                                TextColor="#526171" />
+
+                        </BindableLayout.EmptyView>
+
+                        <BindableLayout.ItemTemplate>
+
+                            <DataTemplate x:DataType="models:Cuenta">
+
+                                <Border
+                                    BackgroundColor="White"
+                                    Stroke="#D6DEE6"
+                                    StrokeThickness="1"
+                                    Padding="16">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                                        <Label
+                                            Grid.Column="0"
+                                            Text="{Binding Nombre}"
+                                            FontSize="18"
+                                            FontAttributes="Bold"
+                                            TextColor="#172B3A"
+                                            VerticalOptions="Center" />
+
+                                        <Button
+                                            Grid.Column="1"
+                                            Text="Eliminar"
+                                            BackgroundColor="#A83232"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CuentasViewModel}}, Path=EliminarCuentaCommand}"
+                                            CommandParameter="{Binding .}" />
+
+                                    </Grid>
+
+                                </Border>
+
+                            </DataTemplate>
+
+                        </BindableLayout.ItemTemplate>
+
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
 
             </VerticalStackLayout>
 

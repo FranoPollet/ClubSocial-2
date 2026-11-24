@@ -39,6 +39,9 @@ namespace ClubSocial.ViewModels
 
         public List<Moneda> Monedas { get; } = new() { Moneda.ARS, Moneda.USD };
 
+        // Las cuentas tienen su propio ViewModel; la pantalla lo muestra en una sección
+        public CuentasViewModel Cuentas { get; }
+
         public string NombreCategoria
         {
             get => _nombreCategoria;
@@ -144,12 +147,14 @@ namespace ClubSocial.ViewModels
             ICategoriaRepository categoriaRepositorio,
             IActividadRepository actividadRepositorio,
             ISocioRepository socioRepositorio,
-            PrecioService precioService)
+            PrecioService precioService,
+            CuentasViewModel cuentas)
         {
             _categoriaRepositorio = categoriaRepositorio;
             _actividadRepositorio = actividadRepositorio;
             _socioRepositorio = socioRepositorio;
             _precioService = precioService;
+            Cuentas = cuentas;
 
             CargarCommand = new Command(
                 async () => await CargarAsync(),
@@ -275,6 +280,7 @@ namespace ClubSocial.ViewModels
             try
             {
                 await ActualizarListasAsync();
+                await Cuentas.CargarAsync();
                 Mensaje = $"Categorías: {Categorias.Count}. Actividades: {Actividades.Count}.";
             }
             catch (Exception ex)

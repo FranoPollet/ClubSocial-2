@@ -238,6 +238,25 @@
 
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label
+                            Text="Cuenta donde entra la plata"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Con vale no hace falta."
+                            FontSize="12"
+                            TextColor="#526171" />
+
+                        <Picker
+                            Title="Elegir cuenta"
+                            ItemsSource="{Binding CuentasDisponibles}"
+                            ItemDisplayBinding="{Binding Nombre, x:DataType=models:Cuenta}"
+                            SelectedItem="{Binding CuentaSeleccionada, Mode=TwoWay}" />
+
+                    </VerticalStackLayout>
+
                     <Label
                         Text="{Binding TotalPesosTexto}"
                         FontSize="16"

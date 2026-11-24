@@ -34,11 +34,11 @@
 
         </Tab>
 
-        <Tab Title="Precios">
+        <Tab Title="Ajustes">
 
             <ShellContent
                 x:Name="PreciosContent"
-                Title="Precios"
+                Title="Ajustes"
                 Route="precios" />
 
         </Tab>

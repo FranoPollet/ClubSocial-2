@@ -16,6 +16,7 @@ namespace ClubSocial.ViewModels
         private readonly ISocioRepository _socioRepositorio;
         private readonly ICategoriaRepository _categoriaRepositorio;
         private readonly IActividadRepository _actividadRepositorio;
+        private readonly ICuentaRepository _cuentaRepositorio;
         private readonly IPagoRepository _pagoRepositorio;
         private readonly CobranzaService _cobranzaService;
         private readonly PrecioService _precioService;
@@ -40,6 +41,10 @@ namespace ClubSocial.ViewModels
         private bool _esActividad;
         private DateTime _fechaPago = DateTime.Today;
         private Actividad? _actividadSeleccionada;
+        private Cuenta? _cuentaSeleccionada;
+
+        // Recuerdo la última cuenta usada para dejarla elegida en el próximo cobro
+        private int _ultimaCuentaId;
         private bool _valeDisponible;
         private bool _usarVale;
         private Precio? _precioPrevisto;
@@ -60,6 +65,8 @@ namespace ClubSocial.ViewModels
         public ObservableCollection<Categoria> CategoriasFiltro { get; } = new();
 
         public ObservableCollection<Actividad> ActividadesDisponibles { get; } = new();
+
+        public ObservableCollection<Cuenta> CuentasDisponibles { get; } = new();
 
         public List<string> Estados { get; } = new() { "Todos", "Pagaron", "Deben" };
 
@@ -202,6 +209,12 @@ namespace ClubSocial.ViewModels
             }
         }
 
+        public Cuenta? CuentaSeleccionada
+        {
+            get => _cuentaSeleccionada;
+            set => SetProperty(ref _cuentaSeleccionada, value);
+        }
+
         public bool ValeDisponible
         {
             get => _valeDisponible;
@@ -317,6 +330,7 @@ namespace ClubSocial.ViewModels
             ISocioRepository socioRepositorio,
             ICategoriaRepository categoriaRepositorio,
             IActividadRepository actividadRepositorio,
+            ICuentaRepository cuentaRepositorio,
             IPagoRepository pagoRepositorio,
             CobranzaService cobranzaService,
             PrecioService precioService,
@@ -325,6 +339,7 @@ namespace ClubSocial.ViewModels
             _socioRepositorio = socioRepositorio;
             _categoriaRepositorio = categoriaRepositorio;
             _actividadRepositorio = actividadRepositorio;
+            _cuentaRepositorio = cuentaRepositorio;
             _pagoRepositorio = pagoRepositorio;
             _cobranzaService = cobranzaService;
             _precioService = precioService;
@@ -406,10 +421,11 @@ namespace ClubSocial.ViewModels
             var actividades = await _actividadRepositorio.ObtenerTodosAsync();
             var socios = await _socioRepositorio.ObtenerTodosAsync();
             var pagos = await _pagoRepositorio.ObtenerPorPeriodoAsync(Periodo);
+            var cuentas = await _cuentaRepositorio.ObtenerTodosAsync();
 
             ActualizarFiltroCategorias(categorias);
 
-            // Si hay un cobro abierto no toco las actividades, para no perder la que eligió
+            // Si hay un cobro abierto no toco las listas, para no perder lo que eligió
             if (!HayCobroAbierto)
             {
                 ActividadesDisponibles.Clear();
@@ -417,6 +433,13 @@ namespace ClubSocial.ViewModels
                 foreach (var actividad in actividades.Where(a => a.Activa))
                 {
                     ActividadesDisponibles.Add(actividad);
+                }
+
+                CuentasDisponibles.Clear();
+
+                foreach (var cuenta in cuentas)
+                {
+                    CuentasDisponibles.Add(cuenta);
                 }
             }
 
@@ -534,6 +557,12 @@ namespace ClubSocial.ViewModels
                 return;
             }
 
+            if (CuentasDisponibles.Count == 0)
+            {
+                Mensaje = "Primero cargá una cuenta en la pestaña Ajustes.";
+                return;
+            }
+
             EstaOcupado = true;
 
             try
@@ -544,6 +573,7 @@ namespace ClubSocial.ViewModels
                 EsActividad = esActividad;
                 FechaPago = DateTime.Today;
                 ActividadSeleccionada = null;
+                CuentaSeleccionada = CuentasDisponibles.FirstOrDefault(cuenta => cuenta.Id == _ultimaCuentaId);
                 UsarVale = false;
                 CotizacionTexto = string.Empty;
 
@@ -674,6 +704,17 @@ namespace ClubSocial.ViewModels
                 return;
             }
 
+            // Si se cobra plata hay que decir en qué cuenta entra (con vale no entra nada)
+            bool conVale = EsActividad && UsarVale;
+
+            if (!conVale && CuentaSeleccionada == null)
+            {
+                Mensaje = "Elegí la cuenta donde entra la plata.";
+                return;
+            }
+
+            int cuentaId = conVale ? 0 : CuentaSeleccionada!.Id;
+
             EstaOcupado = true;
 
             try
@@ -695,7 +736,8 @@ namespace ClubSocial.ViewModels
                         Periodo,
                         FechaPago,
                         cotizacion,
-                        UsarVale);
+                        UsarVale,
+                        cuentaId);
                 }
                 else
                 {
@@ -704,7 +746,8 @@ namespace ClubSocial.ViewModels
                         SocioElegido.Categoria!,
                         Periodo,
                         FechaPago,
-                        cotizacion);
+                        cotizacion,
+                        cuentaId);
                 }
 
                 // Las reglas (cuota repetida, vale usado, sin precio) las decide el servicio
@@ -712,6 +755,11 @@ namespace ClubSocial.ViewModels
                 {
                     Mensaje = error;
                     return;
+                }
+
+                if (cuentaId != 0)
+                {
+                    _ultimaCuentaId = cuentaId;
                 }
 
                 CerrarCobro();
@@ -734,6 +782,7 @@ namespace ClubSocial.ViewModels
             _ajustandoCobro = true;
 
             SocioElegido = null;
+            CuentaSeleccionada = null;
             ActividadSeleccionada = null;
             UsarVale = false;
             ValeDisponible = false;

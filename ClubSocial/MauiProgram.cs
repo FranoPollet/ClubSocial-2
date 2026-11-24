@@ -61,6 +61,10 @@ namespace ClubSocial
             builder.Services.AddSingleton<CobranzaViewModel>();
             builder.Services.AddSingleton<CobranzaPage>();
 
+            // Cuentas (dónde entra y sale la plata).
+            builder.Services.AddSingleton<ICuentaRepository>(servicios => new CuentaRepositorySQLite(rutaBaseDatos));
+            builder.Services.AddSingleton<CuentasViewModel>();
+
             // El detalle se crea nuevamente cada vez que lo abrimos.
             builder.Services.AddTransient<DetalleClimaViewModel>();
             builder.Services.AddTransient<DetalleClimaPage>();
