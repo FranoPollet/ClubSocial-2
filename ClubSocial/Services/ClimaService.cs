@@ -35,11 +35,19 @@ namespace ClubSocial.Services
             };
         }
 
-        public async Task<List<PronosticoDia>> ObtenerPronosticoAsync()
+        // Ubicación de ejemplo (Buenos Aires)
+        public const double LatitudEjemplo = -34.6037;
+        public const double LongitudEjemplo = -58.3816;
+
+        // Si no se le pasan coordenadas usa Buenos Aires, así los tests y la pantalla siguen igual
+        public async Task<List<PronosticoDia>> ObtenerPronosticoAsync(
+            double latitud = LatitudEjemplo,
+            double longitud = LongitudEjemplo)
         {
-            // BsAs es la ubicación de ejemplo
+            // Con InvariantCulture el decimal va con punto, que es lo que espera la API
             string consulta =
-                "v1/forecast?latitude=-34.6037&longitude=-58.3816" +
+                "v1/forecast?latitude=" + latitud.ToString(CultureInfo.InvariantCulture) +
+                "&longitude=" + longitud.ToString(CultureInfo.InvariantCulture) +
                 "&daily=temperature_2m_min,temperature_2m_max," +
                 "precipitation_probability_max" +
                 "&temperature_unit=celsius" +

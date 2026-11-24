@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ClubSocial.Models;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Networking;
 
 namespace ClubSocial.ViewModels
@@ -19,6 +22,11 @@ namespace ClubSocial.ViewModels
         private bool _estaNavegando;
         private PronosticoDia? _diaSeleccionado;
 
+        // Coordenadas con las que se consulta; arrancan en Buenos Aires
+        private double _latitud = ClimaService.LatitudEjemplo;
+        private double _longitud = ClimaService.LongitudEjemplo;
+        private string _ubicacionTexto = "Buenos Aires · Ubicación de ejemplo";
+
         private string _mensaje =
             "Presioná Cargar datos para consultar el pronóstico.";
 
@@ -28,6 +36,12 @@ namespace ClubSocial.ViewModels
         {
             get => _mensaje;
             set => SetProperty(ref _mensaje, value);
+        }
+
+        public string UbicacionTexto
+        {
+            get => _ubicacionTexto;
+            set => SetProperty(ref _ubicacionTexto, value);
         }
 
         public PronosticoDia? DiaSeleccionado
@@ -44,11 +58,13 @@ namespace ClubSocial.ViewModels
                 if (SetProperty(ref _estaOcupado, value))
                 {
                     CargarDatosCommand.ChangeCanExecute();
+                    UsarMiUbicacionCommand.ChangeCanExecute();
                 }
             }
         }
 
         public Command CargarDatosCommand { get; }
+        public Command UsarMiUbicacionCommand { get; }
         public Command VerDetalleCommand { get; }
 
         public ClimaViewModel(ClimaService climaService)
@@ -57,6 +73,10 @@ namespace ClubSocial.ViewModels
 
             CargarDatosCommand = new Command(
                 async () => await CargarDatosAsync(),
+                () => !EstaOcupado);
+
+            UsarMiUbicacionCommand = new Command(
+                async () => await UsarMiUbicacionAsync(),
                 () => !EstaOcupado);
 
             VerDetalleCommand = new Command(
@@ -135,7 +155,7 @@ namespace ClubSocial.ViewModels
 
                 Mensaje = "Consultando el pronóstico...";
 
-                var pronostico = await _climaService.ObtenerPronosticoAsync();
+                var pronostico = await _climaService.ObtenerPronosticoAsync(_latitud, _longitud);
 
                 // Reemplazamos la lista cuando la consulta termina correctamente.
                 Dias.Clear();
@@ -166,6 +186,107 @@ namespace ClubSocial.ViewModels
             finally
             {
                 EstaOcupado = false;
+            }
+        }
+
+        // Pide el permiso, lee el GPS y después consulta el clima de ese lugar
+        private async Task UsarMiUbicacionAsync()
+        {
+            if (EstaOcupado)
+            {
+                return;
+            }
+
+            EstaOcupado = true;
+
+            bool ubicado = false;
+
+            try
+            {
+                // Primero miro si ya tengo el permiso; si no, se lo pido al usuario
+                PermissionStatus estado = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+
+                if (estado != PermissionStatus.Granted)
+                {
+                    estado = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                }
+
+                if (estado != PermissionStatus.Granted)
+                {
+                    Mensaje = "Sin permiso de ubicación se usa Buenos Aires.";
+
+                    // Si lo negó, ofrezco abrir los ajustes de la app para que lo active
+                    bool abrirAjustes = await Shell.Current.DisplayAlert(
+                        "Permiso de ubicación",
+                        "Necesitamos el permiso de ubicación para consultar el clima donde estás. " +
+                        "Podés activarlo en los ajustes de la aplicación.",
+                        "Abrir ajustes",
+                        "Ahora no");
+
+                    if (abrirAjustes)
+                    {
+                        AppInfo.Current.ShowSettingsUI();
+                    }
+
+                    return;
+                }
+
+                Mensaje = "Buscando tu ubicación...";
+
+                // La última conocida es rápida; si no hay, le pido una nueva al GPS
+                Location? ubicacion = await Geolocation.Default.GetLastKnownLocationAsync();
+
+                if (ubicacion == null)
+                {
+                    var pedido = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
+
+                    ubicacion = await Geolocation.Default.GetLocationAsync(pedido);
+                }
+
+                if (ubicacion == null)
+                {
+                    Mensaje = "No se pudo obtener la ubicación. Se usa Buenos Aires.";
+                    return;
+                }
+
+                _latitud = ubicacion.Latitude;
+                _longitud = ubicacion.Longitude;
+
+                UbicacionTexto = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Tu ubicación · lat {0:F4}, lon {1:F4}",
+                    _latitud,
+                    _longitud);
+
+                ubicado = true;
+            }
+            catch (FeatureNotSupportedException)
+            {
+                Mensaje = "Este dispositivo no tiene GPS. Se usa Buenos Aires.";
+            }
+            catch (FeatureNotEnabledException)
+            {
+                Mensaje = "El GPS está apagado. Activá la ubicación del dispositivo.";
+            }
+            catch (PermissionException)
+            {
+                Mensaje = "Falta el permiso de ubicación.";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+
+                Mensaje = "No se pudo obtener la ubicación.";
+            }
+            finally
+            {
+                EstaOcupado = false;
+            }
+
+            // Recién ahora (con el botón libre) consulto el pronóstico del lugar encontrado
+            if (ubicado)
+            {
+                await CargarDatosAsync();
             }
         }
 

@@ -22,7 +22,7 @@
                 TextColor="#203A54" />
 
             <Label
-                Text="Buenos Aires · Ubicación de ejemplo"
+                Text="{Binding UbicacionTexto}"
                 TextColor="#526171" />
 
             <Label
@@ -31,33 +31,28 @@
 
         </VerticalStackLayout>
 
-        <Button
-            Grid.Row="1"
-            Text="Cargar datos"
-            Command="{Binding CargarDatosCommand}"
-            BackgroundColor="#203A54"
-            TextColor="White"
-            CornerRadius="8"
-            MinimumHeightRequest="48" />
-
         <Grid
-            Grid.Row="2"
-            ColumnDefinitions="Auto,*"
+            Grid.Row="1"
+            ColumnDefinitions="*,*"
             ColumnSpacing="10">
 
-            <ActivityIndicator
+            <Button
                 Grid.Column="0"
-                IsRunning="{Binding EstaOcupado}"
-                IsVisible="{Binding EstaOcupado}"
-                Color="#203A54"
-                VerticalOptions="Center" />
+                Text="Cargar datos"
+                Command="{Binding CargarDatosCommand}"
+                BackgroundColor="#203A54"
+                TextColor="White"
+                CornerRadius="8"
+                MinimumHeightRequest="48" />
 
-            <Label
+            <Button
                 Grid.Column="1"
-                Text="{Binding Mensaje}"
-                TextColor="#203A54"
-                LineBreakMode="WordWrap"
-                VerticalOptions="Center" />
+                Text="Usar mi ubicación"
+                Command="{Binding UsarMiUbicacionCommand}"
+                BackgroundColor="#203A54"
+                TextColor="White"
+                CornerRadius="8"
+                MinimumHeightRequest="48" />
 
         </Grid>
 
