@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ClubSocial.Models"
+    xmlns:viewmodels="clr-namespace:ClubSocial.ViewModels"
+    x:Class="ClubSocial.Views.ResumenPage"
+    x:DataType="viewmodels:ResumenViewModel"
+    Title="Resumen"
+    BackgroundColor="#EEF2F5">
+
+    <ContentPage.Resources>
+
+        <Style TargetType="Label">
+            <Setter Property="TextColor" Value="#243447" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#203A54" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <ScrollView>
+
+        <VerticalStackLayout
+            Padding="16"
+            Spacing="18"
+            MaximumWidthRequest="760"
+            HorizontalOptions="Fill">
+
+            <!-- Encabezado -->
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="Resumen"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#203A54" />
+
+                <Label
+                    Text="Lo que entró y lo que salió del club en el mes."
+                    FontSize="15"
+                    TextColor="#526171" />
+
+            </VerticalStackLayout>
+
+            <!-- Selector de mes -->
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+                <Button
+                    Grid.Column="0"
+                    Text="◀"
+                    WidthRequest="60"
+                    Command="{Binding MesAnteriorCommand}" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding PeriodoTexto}"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#203A54"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+
+                <Button
+                    Grid.Column="2"
+                    Text="▶"
+                    WidthRequest="60"
+                    Command="{Binding MesSiguienteCommand}" />
+
+            </Grid>
+
+            <!-- Mensaje -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+
+                <ActivityIndicator
+                    Grid.Column="0"
+                    IsRunning="{Binding EstaOcupado}"
+                    IsVisible="{Binding EstaOcupado}"
+                    Color="#203A54"
+                    VerticalOptions="Center" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Mensaje}"
+                    TextColor="#203A54"
+                    FontAttributes="Bold"
+                    LineBreakMode="WordWrap"
+                    VerticalOptions="Center" />
+
+            </Grid>
+
+            <!-- Totales del mes -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#D6DEE6"
+                StrokeThickness="1"
+                Padding="18">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label
+                        Text="Ingresos"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="{Binding IngresosTexto}"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="#1E7B3A" />
+
+                    <Label
+                        Text="Gastos"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="{Binding GastosTexto}"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="#A83232" />
+
+                    <Label
+                        Text="Balance"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="{Binding BalanceTexto}"
+                        FontSize="26"
+                        FontAttributes="Bold"
+                        TextColor="{Binding BalanceColor}" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+            <!-- Detalle por cuenta -->
+            <Label
+                Text="Por cuenta"
+                FontSize="21"
+                FontAttributes="Bold"
+                TextColor="#203A54" />
+
+            <VerticalStackLayout
+                Spacing="12"
+                BindableLayout.ItemsSource="{Binding PorCuenta}">
+
+                <BindableLayout.EmptyView>
+
+                    <Label
+                        Text="Todavía no hay cuentas ni movimientos."
+                        Margin="0,8"
+                        TextColor="#526171" />
+
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+
+                    <DataTemplate x:DataType="models:ResumenCuenta">
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#D6DEE6"
+                            StrokeThickness="1"
+                            Padding="16">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label
+                                    Text="{Binding Nombre}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="#172B3A" />
+
+                                <Label
+                                    Text="{Binding Ingresos, StringFormat='Ingresos: ARS {0:N2}'}"
+                                    TextColor="#1E7B3A" />
+
+                                <Label
+                                    Text="{Binding Gastos, StringFormat='Gastos: ARS {0:N2}'}"
+                                    TextColor="#A83232" />
+
+                                <Label
+                                    Text="{Binding Saldo, StringFormat='Saldo: ARS {0:N2}'}"
+                                    FontAttributes="Bold"
+                                    TextColor="#203A54" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </BindableLayout.ItemTemplate>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>

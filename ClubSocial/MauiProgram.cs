@@ -71,6 +71,11 @@ namespace ClubSocial
             builder.Services.AddSingleton<GastosViewModel>();
             builder.Services.AddSingleton<GastosPage>();
 
+            // Resumen mensual y su pantalla.
+            builder.Services.AddSingleton<ResumenService>();
+            builder.Services.AddSingleton<ResumenViewModel>();
+            builder.Services.AddSingleton<ResumenPage>();
+
             // El detalle se crea nuevamente cada vez que lo abrimos.
             builder.Services.AddTransient<DetalleClimaViewModel>();
             builder.Services.AddTransient<DetalleClimaPage>();

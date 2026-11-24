@@ -9,6 +9,7 @@ namespace ClubSocial
             MainPage mainPage,
             CobranzaPage cobranzaPage,
             GastosPage gastosPage,
+            ResumenPage resumenPage,
             PreciosPage preciosPage,
             ClimaPage climaPage)
         {
@@ -17,6 +18,7 @@ namespace ClubSocial
             SociosContent.Content = mainPage;
             CobranzaContent.Content = cobranzaPage;
             GastosContent.Content = gastosPage;
+            ResumenContent.Content = resumenPage;
             PreciosContent.Content = preciosPage;
             ClimaContent.Content = climaPage;
 

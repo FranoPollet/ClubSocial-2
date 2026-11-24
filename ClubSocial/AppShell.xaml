@@ -43,6 +43,15 @@
 
         </Tab>
 
+        <Tab Title="Resumen">
+
+            <ShellContent
+                x:Name="ResumenContent"
+                Title="Resumen"
+                Route="resumen" />
+
+        </Tab>
+
         <Tab Title="Ajustes">
 
             <ShellContent
