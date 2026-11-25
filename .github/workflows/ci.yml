@@ -19,10 +19,12 @@ jobs:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar .NET 8
+      - name: Instalar .NET 8 y 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 
+            8.0.x
+            9.0.x
 
       # Guarda los paquetes NuGet entre ejecuciones para no bajarlos cada vez
       - name: Guardar paquetes NuGet en caché
@@ -60,10 +62,12 @@ jobs:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar .NET 8
+      - name: Instalar .NET 8 y 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 
+            8.0.x
+            9.0.x
 
       - name: Guardar paquetes NuGet en caché
         uses: actions/cache@v4
