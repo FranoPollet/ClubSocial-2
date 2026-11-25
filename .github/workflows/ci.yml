@@ -1,6 +1,6 @@
 name: CI - ClubSocial
 
-# Se ejecuta cada vez que subo cÛdigo o abro un pull request
+# Se ejecuta cada vez que subo c√≥digo o abro un pull request
 on:
   push:
   pull_request:
@@ -16,7 +16,7 @@ jobs:
         configuracion: [ Debug, Release ]
 
     steps:
-      - name: Descargar el cÛdigo del repositorio
+      - name: Descargar el c√≥digo del repositorio
         uses: actions/checkout@v4
 
       - name: Instalar .NET 8
@@ -25,7 +25,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       # Guarda los paquetes NuGet entre ejecuciones para no bajarlos cada vez
-      - name: Guardar paquetes NuGet en cachÈ
+      - name: Guardar paquetes NuGet en cach√©
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
@@ -38,13 +38,53 @@ jobs:
       - name: Compilar los tests en ${{ matrix.configuracion }}
         run: dotnet build ClubSocial.Tests/ClubSocial.Tests.csproj -c ${{ matrix.configuracion }} --no-restore
 
-      - name: Ejecutar tests unitarios y de integraciÛn
+      - name: Ejecutar tests unitarios y de integraci√≥n
         run: dotnet test ClubSocial.Tests/ClubSocial.Tests.csproj -c ${{ matrix.configuracion }} --no-build --verbosity normal --logger "trx;LogFileName=resultados.trx" --results-directory TestResults
 
-      # if: always() sube el informe aunque alg˙n test falle, asÌ se puede revisar
+      # if: always() sube el informe aunque alg√∫n test falle, as√≠ se puede revisar
       - name: Subir el informe de resultados
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-tests-${{ matrix.configuracion }}
           path: TestResults/*.trx
+
+  build-android:
+    name: Compilar la app Android (Release)
+    runs-on: ubuntu-latest
+
+    # Este job espera a que los tests terminen bien; si fallan, no se ejecuta
+    needs: tests
+
+    steps:
+      - name: Descargar el c√≥digo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Guardar paquetes NuGet en cach√©
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # La app es de MAUI: el runner necesita el workload de Android para compilarla
+      - name: Instalar el workload de MAUI para Android
+        run: dotnet workload install maui-android
+
+      - name: Restaurar dependencias
+        run: dotnet restore ClubSocial/ClubSocial.csproj
+
+      - name: Generar el APK en Release
+        run: dotnet publish ClubSocial/ClubSocial.csproj -f net8.0-android -c Release -p:AndroidPackageFormat=apk --no-restore
+
+      - name: Subir el APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: clubsocial-apk
+          path: ClubSocial/bin/Release/net8.0-android/publish/*.apk
+          if-no-files-found: error
