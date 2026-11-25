@@ -1,0 +1,50 @@
+name: CI - ClubSocial
+
+# Se ejecuta cada vez que subo código o abro un pull request
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.configuracion }})
+    runs-on: ubuntu-latest
+
+    # Matriz: el mismo job se corre dos veces, una en Debug y otra en Release
+    strategy:
+      matrix:
+        configuracion: [ Debug, Release ]
+
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Guarda los paquetes NuGet entre ejecuciones para no bajarlos cada vez
+      - name: Guardar paquetes NuGet en caché
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restaurar dependencias
+        run: dotnet restore ClubSocial.Tests/ClubSocial.Tests.csproj
+
+      - name: Compilar los tests en ${{ matrix.configuracion }}
+        run: dotnet build ClubSocial.Tests/ClubSocial.Tests.csproj -c ${{ matrix.configuracion }} --no-restore
+
+      - name: Ejecutar tests unitarios y de integración
+        run: dotnet test ClubSocial.Tests/ClubSocial.Tests.csproj -c ${{ matrix.configuracion }} --no-build --verbosity normal --logger "trx;LogFileName=resultados.trx" --results-directory TestResults
+
+      # if: always() sube el informe aunque algún test falle, así se puede revisar
+      - name: Subir el informe de resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-tests-${{ matrix.configuracion }}
+          path: TestResults/*.trx
