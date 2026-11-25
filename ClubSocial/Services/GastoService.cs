@@ -21,7 +21,8 @@ namespace ClubSocial.Services
             Moneda moneda,
             decimal cotizacion,
             DateTime fecha,
-            int cuentaId)
+            int cuentaId,
+            string rutaComprobante = "")
         {
             if (string.IsNullOrWhiteSpace(descripcion))
             {
@@ -55,7 +56,8 @@ namespace ClubSocial.Services
                 Moneda = moneda,
                 Cotizacion = enDolares ? cotizacion : 0,
                 MontoEnPesos = enDolares ? Math.Round(monto * cotizacion, 2) : monto,
-                CuentaId = cuentaId
+                CuentaId = cuentaId,
+                RutaComprobante = rutaComprobante
             };
 
             await _repositorio.GuardarAsync(gasto);

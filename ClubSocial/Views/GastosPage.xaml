@@ -255,6 +255,37 @@
 
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout Spacing="8">
+
+                        <Label
+                            Text="Comprobante (opcional)"
+                            FontAttributes="Bold" />
+
+                        <Image
+                            Source="{Binding FotoPrevia}"
+                            IsVisible="{Binding TieneFoto}"
+                            HeightRequest="180"
+                            Aspect="AspectFit"
+                            HorizontalOptions="Start" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+
+                            <Button
+                                Grid.Column="0"
+                                Text="Sacar foto"
+                                Command="{Binding SacarFotoCommand}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Text="Quitar foto"
+                                BackgroundColor="#A83232"
+                                IsVisible="{Binding TieneFoto}"
+                                Command="{Binding QuitarFotoCommand}" />
+
+                        </Grid>
+
+                    </VerticalStackLayout>
+
                     <Button
                         Text="Registrar gasto"
                         Command="{Binding RegistrarGastoCommand}" />
@@ -315,6 +346,13 @@
                                 <Label
                                     Text="{Binding FechaTexto}"
                                     TextColor="#526171" />
+
+                                <Image
+                                    Source="{Binding Comprobante}"
+                                    IsVisible="{Binding TieneComprobante}"
+                                    HeightRequest="160"
+                                    Aspect="AspectFit"
+                                    HorizontalOptions="Start" />
 
                                 <Button
                                     Text="Anular gasto"

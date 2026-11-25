@@ -1,4 +1,6 @@
-﻿using ClubSocial.Models;
+﻿using System.IO;
+using ClubSocial.Models;
+using Microsoft.Maui.Controls;
 
 namespace ClubSocial.ViewModels
 {
@@ -25,5 +27,12 @@ namespace ClubSocial.ViewModels
                 return $"ARS {Gasto.MontoEnPesos:N2}";
             }
         }
+
+        // Tiene comprobante si hay una ruta y el archivo todavía existe
+        public bool TieneComprobante =>
+            !string.IsNullOrEmpty(Gasto.RutaComprobante) && File.Exists(Gasto.RutaComprobante);
+
+        public ImageSource? Comprobante =>
+            TieneComprobante ? ImageSource.FromFile(Gasto.RutaComprobante) : null;
     }
 }

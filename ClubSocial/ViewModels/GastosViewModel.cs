@@ -8,6 +8,10 @@ using ClubSocial.Models;
 using ClubSocial.Repositories;
 using ClubSocial.Services;
 using Microsoft.Maui.Controls;
+using System.IO;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 
 namespace ClubSocial.ViewModels
 {
@@ -28,6 +32,27 @@ namespace ClubSocial.ViewModels
         private string _cotizacionTexto = string.Empty;
         private DateTime _fechaGasto = DateTime.Today;
         private Cuenta? _cuentaSeleccionada;
+
+        // Foto del comprobante que se está cargando (ruta del archivo copiado a la app)
+        private string _rutaComprobante = string.Empty;
+
+        public string RutaComprobante
+        {
+            get => _rutaComprobante;
+            set
+            {
+                if (SetProperty(ref _rutaComprobante, value))
+                {
+                    OnPropertyChanged(nameof(TieneFoto));
+                    OnPropertyChanged(nameof(FotoPrevia));
+                }
+            }
+        }
+
+        public bool TieneFoto => !string.IsNullOrEmpty(_rutaComprobante);
+
+        public ImageSource? FotoPrevia =>
+            TieneFoto ? ImageSource.FromFile(_rutaComprobante) : null;
 
         private string _mensaje = "Cargando gastos...";
         private bool _estaOcupado;
@@ -127,6 +152,7 @@ namespace ClubSocial.ViewModels
                     MesAnteriorCommand.ChangeCanExecute();
                     MesSiguienteCommand.ChangeCanExecute();
                     RegistrarGastoCommand.ChangeCanExecute();
+                    SacarFotoCommand.ChangeCanExecute();
                     AnularGastoCommand.ChangeCanExecute();
                 }
             }
@@ -138,6 +164,8 @@ namespace ClubSocial.ViewModels
         public Command RegistrarGastoCommand { get; }
         public Command TraerDolarCommand { get; }
         public Command<GastoItem> AnularGastoCommand { get; }
+        public Command SacarFotoCommand { get; }
+        public Command QuitarFotoCommand { get; }
 
         public GastosViewModel(
             IGastoRepository gastoRepositorio,
@@ -168,6 +196,10 @@ namespace ClubSocial.ViewModels
 
             TraerDolarCommand = new Command(
                 async () => await TraerDolarAsync());
+
+            SacarFotoCommand = new Command(async () => await SacarFotoAsync(),() => !EstaOcupado);
+
+            QuitarFotoCommand = new Command(QuitarFoto);
 
             AnularGastoCommand = new Command<GastoItem>(
                 async item => await AnularGastoAsync(item),
@@ -267,6 +299,111 @@ namespace ClubSocial.ViewModels
             }
         }
 
+        private async Task SacarFotoAsync()
+        {
+            if (EstaOcupado)
+            {
+                return;
+            }
+
+            EstaOcupado = true;
+
+            try
+            {
+                if (!MediaPicker.Default.IsCaptureSupported)
+                {
+                    Mensaje = "Este dispositivo no tiene cámara.";
+                    return;
+                }
+
+                // Primero miro si ya tengo el permiso; si no, se lo pido al usuario
+                PermissionStatus estado = await Permissions.CheckStatusAsync<Permissions.Camera>();
+
+                if (estado != PermissionStatus.Granted)
+                {
+                    estado = await Permissions.RequestAsync<Permissions.Camera>();
+                }
+
+                if (estado != PermissionStatus.Granted)
+                {
+                    Mensaje = "Sin permiso de cámara no se puede sacar la foto.";
+
+                    bool abrirAjustes = await Shell.Current.DisplayAlert(
+                        "Permiso de cámara",
+                        "Necesitamos la cámara para sacar la foto del comprobante. " +
+                        "Podés activarla en los ajustes de la aplicación.",
+                        "Abrir ajustes",
+                        "Ahora no");
+
+                    if (abrirAjustes)
+                    {
+                        AppInfo.Current.ShowSettingsUI();
+                    }
+
+                    return;
+                }
+
+                FileResult? foto = await MediaPicker.Default.CapturePhotoAsync();
+
+                // Si cerró la cámara sin sacar la foto, el resultado es null
+                if (foto == null)
+                {
+                    Mensaje = "No se sacó ninguna foto.";
+                    return;
+                }
+
+                // Copio la foto a la carpeta de la app; en la base solo guardo la ruta
+                string carpeta = Path.Combine(FileSystem.AppDataDirectory, "comprobantes");
+                Directory.CreateDirectory(carpeta);
+
+                string destino = Path.Combine(carpeta, $"comprobante_{DateTime.Now:yyyyMMdd_HHmmss}.jpg");
+
+                using (Stream origen = await foto.OpenReadAsync())
+                using (FileStream salida = File.OpenWrite(destino))
+                {
+                    await origen.CopyToAsync(salida);
+                }
+
+                // Si ya había una foto sin registrar, la reemplazo y borro la anterior
+                BorrarArchivo(RutaComprobante);
+
+                RutaComprobante = destino;
+                Mensaje = "Foto guardada. Registrá el gasto para asociarla.";
+            }
+            catch (FeatureNotSupportedException)
+            {
+                Mensaje = "Este dispositivo no tiene cámara.";
+            }
+            catch (PermissionException)
+            {
+                Mensaje = "Falta el permiso de cámara.";
+            }
+            catch (Exception ex)
+            {
+                Mensaje = "No se pudo sacar la foto.";
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                EstaOcupado = false;
+            }
+        }
+
+        private void QuitarFoto()
+        {
+            BorrarArchivo(RutaComprobante);
+            RutaComprobante = string.Empty;
+            Mensaje = "Foto quitada.";
+        }
+
+        private static void BorrarArchivo(string ruta)
+        {
+            if (!string.IsNullOrEmpty(ruta) && File.Exists(ruta))
+            {
+                File.Delete(ruta);
+            }
+        }
+
         private async Task RegistrarGastoAsync()
         {
             if (EstaOcupado)
@@ -299,7 +436,8 @@ namespace ClubSocial.ViewModels
                     MonedaSeleccionada,
                     cotizacion,
                     FechaGasto,
-                    CuentaSeleccionada?.Id ?? 0);
+                    CuentaSeleccionada?.Id ?? 0,
+                    RutaComprobante);
 
                 if (error != null)
                 {
@@ -309,6 +447,7 @@ namespace ClubSocial.ViewModels
 
                 Descripcion = string.Empty;
                 MontoTexto = string.Empty;
+                RutaComprobante = string.Empty;
 
                 // Muestro el mes del gasto para que se vea en la lista
                 Periodo = CobranzaService.PrimerDiaDelMes(FechaGasto);
@@ -350,6 +489,10 @@ namespace ClubSocial.ViewModels
                 }
 
                 await _gastoRepositorio.EliminarAsync(item.Gasto);
+
+
+                // Si el gasto tenía foto, borro también el archivo
+                BorrarArchivo(item.Gasto.RutaComprobante);
 
                 await ActualizarDatosAsync();
                 Mensaje = "Gasto anulado.";

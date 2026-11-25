@@ -28,5 +28,9 @@ namespace ClubSocial.Models
 
         // Cuenta de la que salió la plata
         public int CuentaId { get; set; }
+
+
+        // Ruta de la foto del comprobante (vacía si no tiene). Se guarda solo la ruta, no la imagen
+        public string RutaComprobante { get; set; } = string.Empty;
     }
 }
